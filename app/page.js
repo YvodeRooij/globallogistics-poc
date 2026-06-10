@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   documents,
   sortedFindings,
@@ -10,19 +10,50 @@ import {
   displayFields,
 } from "../lib/data";
 
-const FILE_EXT = (id) => (id.endsWith(".xlsx") ? null : `/docs/${id}.pdf`);
+const TIER_INFO = {
+  1: {
+    title: "Tier 1 · Schoon digitaal",
+    body: "Nette digitale aanlevering: juiste bestandsnamen en leesbare PDF's. Het systeem vult vrijwel alles automatisch in; u controleert en keurt goed.",
+  },
+  2: {
+    title: "Tier 2 · Misleidend formaat",
+    body: "Bestanden waarvan de naam of het formaat niet klopt met de inhoud, zoals een „factuur” die een pakbon blijkt. Het systeem leest de inhoud, niet de bestandsnaam, en markeert elke afwijking.",
+  },
+  3: {
+    title: "Tier 3 · Scans & foto's",
+    body: "Gescande documenten en telefoonfoto's. Hier is de kans op leesfouten het grootst: elk geëxtraheerd veld verdient uw kritische blik vóór goedkeuring.",
+  },
+};
 
-export default function Werkbank() {
+function docFileUrl(doc) {
+  if (doc.fileUrl) return doc.fileUrl;
+  if (doc.id.endsWith(".xlsx")) return null;
+  return `/docs/${doc.id}.pdf`;
+}
+
+export default function Cockpit() {
   const [selectedId, setSelectedId] = useState(documents[0].id);
   const [decisions, setDecisions] = useState({}); // id -> "approved" | "submitted"
-  const [hsAccepted, setHsAccepted] = useState({}); // id -> true
+  const [hsAccepted, setHsAccepted] = useState({});
+  const [openTier, setOpenTier] = useState(null);
+  const [liveDocs, setLiveDocs] = useState([]);
+  const [busy, setBusy] = useState(null); // label van wat er live geanalyseerd wordt
+  const [liveError, setLiveError] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInput = useRef(null);
 
-  const doc = useMemo(() => documents.find((d) => d.id === selectedId), [selectedId]);
+  const allDocs = useMemo(() => [...liveDocs, ...documents], [liveDocs]);
+  const doc = useMemo(() => allDocs.find((d) => d.id === selectedId) || allDocs[0], [allDocs, selectedId]);
   const agg = aggregates();
   const findings = sortedFindings(doc);
-  const decision = decisions[selectedId];
-  const needsHs = Boolean(doc.hs_suggestion) && !hsAccepted[selectedId];
+  const decision = decisions[doc.id];
+  const needsHs = Boolean(doc.hs_suggestion) && !hsAccepted[doc.id];
 
+  const failCount = findings.filter((f) => f.level === "fail").length;
+  const warnCount = findings.filter((f) => f.level === "warn").length;
+  const passCount = findings.filter((f) => f.level === "pass").length;
+
+  const totalDocs = agg.docs + liveDocs.length;
   const approvedCount = Object.values(decisions).filter(Boolean).length;
   const submittedCount = Object.values(decisions).filter((v) => v === "submitted").length;
 
@@ -32,47 +63,126 @@ export default function Werkbank() {
     return groups;
   }, []);
 
-  function approve() {
-    setDecisions((s) => ({ ...s, [selectedId]: "approved" }));
+  const approve = () => setDecisions((s) => ({ ...s, [doc.id]: "approved" }));
+  const submit = () => setDecisions((s) => ({ ...s, [doc.id]: "submitted" }));
+  const acceptHs = () => setHsAccepted((s) => ({ ...s, [doc.id]: true }));
+
+  async function runAnalysis(request, label, fileUrl) {
+    setBusy(label);
+    setLiveError(null);
+    try {
+      const res = await fetch("/api/analyze", request);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Analyse mislukt (${res.status})`);
+      const liveDoc = { ...data, tier: null, fileUrl };
+      setLiveDocs((prev) => [liveDoc, ...prev.filter((d) => d.id !== liveDoc.id)]);
+      setSelectedId(liveDoc.id);
+    } catch (err) {
+      setLiveError(err.message);
+    } finally {
+      setBusy(null);
+    }
   }
-  function submit() {
-    setDecisions((s) => ({ ...s, [selectedId]: "submitted" }));
+
+  function analyzeCurrent() {
+    if (!docFileUrl(doc) || doc.live) return;
+    runAnalysis(
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ docId: doc.id }) },
+      doc.id,
+      `/docs/${doc.id}.pdf`
+    );
   }
-  function acceptHs() {
-    setHsAccepted((s) => ({ ...s, [selectedId]: true }));
+
+  function analyzeFile(file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      setLiveError("Alleen PDF wordt ondersteund in de live-analyse.");
+      return;
+    }
+    const form = new FormData();
+    form.append("file", file);
+    runAnalysis({ method: "POST", body: form }, file.name, URL.createObjectURL(file));
   }
+
+  const fileUrl = docFileUrl(doc);
 
   return (
     <main className="page">
-      <div className="eyebrow">GlobalLogistics · intake → aangifte</div>
-      <h1 className="title">Declaratie-werkbank</h1>
+      <div className="eyebrow">GlobalLogistics · van intake tot aangifte</div>
+      <h1 className="title">Aangiftecockpit</h1>
       <div className="accent-bar" />
       <p className="subtitle">
-        Echte documenten uit de klant-datadump, automatisch uitgelezen en gevalideerd in vijf lagen.
-        Onzekerheden staan vooraan — de declarant beslist, het systeem stelt voor.
+        Documenten uit de klant-datadump, automatisch uitgelezen en in vijf lagen gevalideerd.
+        Onzekerheden staan vooraan: het systeem stelt voor, de declarant beslist.
       </p>
 
       <div className="metrics-strip">
-        <div className="metric"><div className="k">{agg.docs}</div><div className="l">documenten in steekproef</div></div>
-        <div className="metric"><div className="k"><em>{agg.fails}</em> + {agg.warns}</div><div className="l">harde fouten + waarschuwingen gevangen</div></div>
-        <div className="metric"><div className="k">45 → ~7 <span style={{ fontSize: 13 }}>min</span></div><div className="l">doorlooptijd per dossier (gemeten op steekproef)</div></div>
-        <div className="metric"><div className="k">{approvedCount}/{agg.docs}</div><div className="l">beoordeeld · {submittedCount} ingediend (simulatie)</div></div>
+        <div className="metric">
+          <div className="k">{totalDocs}</div>
+          <div className="l">documenten in steekproef{liveDocs.length > 0 ? ` · ${liveDocs.length} live` : ""}</div>
+        </div>
+        <div className="metric">
+          <div className="k"><em>{agg.fails}</em> + {agg.warns}</div>
+          <div className="l">harde fouten + waarschuwingen gevangen</div>
+        </div>
+        <div className="metric">
+          <div className="k">45 → ~7<span className="unit">min</span></div>
+          <div className="l">doorlooptijd per dossier (gemeten op steekproef)</div>
+        </div>
+        <div className="metric">
+          <div className="k">{approvedCount}/{totalDocs}</div>
+          <div className="meter"><span style={{ width: `${(approvedCount / totalDocs) * 100}%` }} /></div>
+          <div className="l">beoordeeld · {submittedCount} ingediend (simulatie)</div>
+        </div>
       </div>
 
       <div className="bench">
-        {/* --------- queue --------- */}
-        <aside>
-          {[1, 2, 3].map((tier) => (
-            <div className="queue" key={tier} style={{ marginBottom: 16 }}>
-              <h3>{tierLabel(tier)}</h3>
-              {byTier[tier].map((d) => (
-                <button
-                  key={d.id}
-                  className={d.id === selectedId ? "on" : ""}
-                  onClick={() => setSelectedId(d.id)}
-                >
+        {/* --------- wachtrij --------- */}
+        <aside className="queue-rail">
+          {liveDocs.length > 0 && (
+            <div className="queue">
+              <h3>
+                <span>Live geanalyseerd</span>
+                <span className="tier-meta"><span className="tier-count">{liveDocs.length}</span></span>
+              </h3>
+              {liveDocs.map((d) => (
+                <button key={d.id} className={d.id === doc.id ? "on" : ""} onClick={() => setSelectedId(d.id)}>
                   <span className="qn">
-                    {d.id.length > 26 ? d.id.slice(0, 24) + "…" : d.id}
+                    <span className="name">{d.id.replace(" · LIVE", "")}</span>
+                    <span className="live-chip">Live</span>
+                    <span className={`dot ${decisions[d.id] ? "pass" : worstLevel(d)}`} />
+                  </span>
+                  <span className="qm">{d.type_detected} · {d.ref || "—"}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {[1, 2, 3].map((tier) => (
+            <div className="queue" key={tier}>
+              <h3>
+                <span>{tierLabel(tier)}</span>
+                <span className="tier-meta">
+                  <span className="tier-count">{byTier[tier].length}</span>
+                  <button
+                    type="button"
+                    className="tier-info"
+                    aria-expanded={openTier === tier}
+                    aria-label={`Wat betekent ${tierLabel(tier)}?`}
+                    onClick={() => setOpenTier(openTier === tier ? null : tier)}
+                  >
+                    i
+                  </button>
+                  <div className={`tier-pop ${openTier === tier ? "open" : ""}`} role="note">
+                    <b>{TIER_INFO[tier].title}</b>
+                    {TIER_INFO[tier].body}
+                  </div>
+                </span>
+              </h3>
+              {byTier[tier].map((d) => (
+                <button key={d.id} className={d.id === doc.id ? "on" : ""} onClick={() => setSelectedId(d.id)}>
+                  <span className="qn">
+                    <span className="name">{d.id}</span>
                     <span className={`dot ${decisions[d.id] ? "pass" : worstLevel(d)}`} />
                   </span>
                   <span className="qm">
@@ -83,21 +193,54 @@ export default function Werkbank() {
               ))}
             </div>
           ))}
+
+          <div
+            className={`dropzone ${dragOver ? "over" : ""} ${busy ? "busy" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => !busy && fileInput.current?.click()}
+            onKeyDown={(e) => e.key === "Enter" && !busy && fileInput.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); if (!busy) analyzeFile(e.dataTransfer.files?.[0]); }}
+          >
+            {busy ? (
+              <><span className="spinner" /><strong style={{ display: "inline" }}>Live aan het analyseren…</strong>
+                <span className="dz-sub" style={{ display: "block" }}>{busy} · extractie + rekenregels</span></>
+            ) : (
+              <><strong>Analyseer een document live</strong>
+                Sleep hier een PDF uit de datadump
+                <span className="dz-sub">of klik om te kiezen · extractie door Claude, validatie deterministisch</span></>
+            )}
+            {liveError && <span className="dz-error">{liveError}</span>}
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/pdf"
+              style={{ display: "none" }}
+              onChange={(e) => { analyzeFile(e.target.files?.[0]); e.target.value = ""; }}
+            />
+          </div>
         </aside>
 
         {/* --------- document --------- */}
         <section className="doc-pane">
           <div className="bar">
-            <span>{doc.id}</span>
-            <span>
-              gedetecteerd: <strong>{doc.type_detected}</strong>
-              {doc.type_from_filename && doc.type_from_filename !== doc.type_detected
-                ? ` · bestandsnaam zei: ${doc.type_from_filename}`
-                : ""}
+            <span className="file">{doc.id}</span>
+            <span className="bar-meta">
+              <span className="pill">inhoud · {doc.type_detected}</span>
+              {doc.type_from_filename && doc.type_from_filename !== doc.type_detected && (
+                <span className="pill mismatch">bestandsnaam zei · {doc.type_from_filename}</span>
+              )}
+              {!doc.live && fileUrl && (
+                <button className="btn-live" onClick={analyzeCurrent} disabled={Boolean(busy)}>
+                  {busy ? "Bezig…" : "Analyseer live"}
+                </button>
+              )}
             </span>
           </div>
-          {FILE_EXT(doc.id) ? (
-            <object data={FILE_EXT(doc.id)} type="application/pdf">
+          {fileUrl ? (
+            <object data={fileUrl} type="application/pdf">
               <DocFallback doc={doc} />
             </object>
           ) : (
@@ -108,20 +251,41 @@ export default function Werkbank() {
         {/* --------- extractie & besluit --------- */}
         <section className="panel">
           <div className="card">
-            <h3>Geëxtraheerde kerngegevens</h3>
+            <h3>
+              <span>Geëxtraheerde kerngegevens</span>
+              {doc.live && <span className="counts"><b className="c-pass">live</b></span>}
+            </h3>
             <div className="fields">
               {displayFields(doc).map((f) => (
                 <div className="field" key={f.label}>
                   <div className="fl">{f.label}</div>
-                  <div className={`fv ${f.missing ? "missing" : ""}`}>{f.missing ? "ONTBREEKT" : f.value}</div>
+                  <div className="fv">{f.missing ? <span className="missing-badge">Ontbreekt</span> : f.value}</div>
                 </div>
               ))}
             </div>
+            {doc.live && (
+              <div className="pad live-meta">
+                geëxtraheerd in {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s · {doc.model} · bevindingen deterministisch berekend
+              </div>
+            )}
           </div>
 
           <div className="card">
-            <h3>Bevindingen — onzekerheid eerst</h3>
+            <h3>
+              <span>Bevindingen · onzekerheid eerst</span>
+              <span className="counts">
+                {failCount > 0 && <b className="c-fail">{failCount} fout</b>}
+                {warnCount > 0 && <b className="c-warn">{warnCount} check</b>}
+                {passCount > 0 && <b className="c-pass">{passCount} ok</b>}
+              </span>
+            </h3>
             <div>
+              {findings.length === 0 && (
+                <div className="finding pass">
+                  <span className="tag">OK</span>
+                  <span className="msg">Geen bevindingen — alle deterministische checks geslaagd.</span>
+                </div>
+              )}
               {findings.map((f, i) => (
                 <div className={`finding ${f.level}`} key={i}>
                   <span className="tag">{f.level === "fail" ? "Fout" : f.level === "warn" ? "Check" : "OK"}</span>
@@ -136,11 +300,15 @@ export default function Werkbank() {
 
           {doc.hs_suggestion && (
             <div className="card hs-card">
-              <h3>HS-classificatie — voorstel, geen besluit</h3>
+              <h3>
+                <span>HS-classificatie · voorstel</span>
+                <span className="ai-chip">AI-voorstel</span>
+              </h3>
               <div className="pad">
-                <div>
-                  <span className="hs-code">{doc.hs_suggestion.code}</span>
-                  <span className="hs-conf">confidence {Math.round(doc.hs_suggestion.confidence * 100)}%</span>
+                <div className="hs-code">{doc.hs_suggestion.code}</div>
+                <div className="hs-confline">
+                  <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%</span>
+                  <span className="hs-meter"><span style={{ width: `${Math.round(doc.hs_suggestion.confidence * 100)}%` }} /></span>
                 </div>
                 <p className="hs-reason">{doc.hs_suggestion.reasoning}</p>
                 <ul className="hs-prec">
@@ -148,35 +316,36 @@ export default function Werkbank() {
                     <li key={i}>{p}</li>
                   ))}
                 </ul>
-                <div className="hs-note">De declarant tekent — niet het model</div>
-                <div className="actions" style={{ marginTop: 12 }}>
-                  <button className="btn accent" onClick={acceptHs} disabled={hsAccepted[selectedId]}>
-                    {hsAccepted[selectedId] ? "Code bevestigd ✓" : "Code bevestigen"}
+                <div className="hs-note">De declarant tekent, niet het model</div>
+                <div className="actions" style={{ marginTop: 14 }}>
+                  <button className="btn accent" onClick={acceptHs} disabled={hsAccepted[doc.id]}>
+                    {hsAccepted[doc.id] ? "Code bevestigd ✓" : "Code bevestigen"}
                   </button>
-                  <button className="btn secondary" disabled={hsAccepted[selectedId]}>Andere code kiezen</button>
+                  <button className="btn secondary" disabled={hsAccepted[doc.id]}>Andere code kiezen</button>
                 </div>
               </div>
             </div>
           )}
 
           <div className="card">
-            <h3>Besluit declarant</h3>
+            <h3><span>Besluit declarant</span></h3>
             <div className="pad">
               {decision === "submitted" ? (
-                <p className="status-line ok">Ingediend bij DUANE 4 (simulatie) ✓ — audit trail vastgelegd</p>
+                <p className="status-line ok">Ingediend bij DUANE 4 (simulatie) ✓ · audit trail vastgelegd</p>
               ) : decision === "approved" ? (
                 <div className="actions">
                   <button className="btn" onClick={submit}>Indienen bij DUANE 4 (simulatie)</button>
                 </div>
               ) : (
                 <div className="actions">
-                  <button className="btn" onClick={approve} disabled={needsHs} title={needsHs ? "Bevestig eerst de HS-code" : ""}>
+                  <button className="btn" onClick={approve} disabled={needsHs}>
                     Goedkeuren na review
                   </button>
                   <button className="btn secondary">Terug naar klant (auto-conceptmail)</button>
                 </div>
               )}
-              <p style={{ fontSize: 12, color: "var(--soft)", marginTop: 10 }}>
+              {needsHs && !decision && <p className="hint-hs">Bevestig eerst de HS-code hierboven.</p>}
+              <p className="micro">
                 Elke correctie voedt de precedentbibliotheek en de golden set — het systeem wordt beter van fouten.
               </p>
             </div>
@@ -190,13 +359,19 @@ export default function Werkbank() {
 function DocFallback({ doc }) {
   return (
     <div className="doc-fallback">
-      <strong>Brondocument-weergave</strong>
-      <span>
-        Plaats <code>{doc.id}.pdf</code> (of het originele bestand) in <code>public/docs/</code> om het hier te tonen.
-      </span>
-      <span>
-        Type gedetecteerd op <strong>inhoud</strong>: {doc.type_detected} · taal: {doc.language || "—"} · ref: {doc.ref}
-      </span>
+      <div className="doc-fallback-frame">
+        <div className="doc-glyph" aria-hidden="true" />
+        <strong>Brondocument</strong>
+        <span className="doc-file">{doc.id.replace(" · LIVE", "")}{doc.id.endsWith(".xlsx") ? "" : ".pdf"}</span>
+        <div className="doc-chips">
+          <span className="chip">type · {doc.type_detected}</span>
+          <span className="chip">taal · {doc.language || "—"}</span>
+          <span className="chip">ref · {doc.ref || "—"}</span>
+        </div>
+        <span className="doc-hint">
+          Geen PDF-weergave in deze omgeving. Plaats het origineel in <code>public/docs/</code> om de bron hier te tonen.
+        </span>
+      </div>
     </div>
   );
 }

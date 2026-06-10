@@ -1,27 +1,45 @@
 import "./globals.css";
-import Link from "next/link";
+import { Inter, Fraunces, IBM_Plex_Mono } from "next/font/google";
+import NavLinks from "./nav-links";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["500", "600", "700"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
+  display: "swap",
+});
 
 export const metadata = {
-  title: "GlobalLogistics — GenAI Declaratie-werkbank",
-  description: "PoC: van rommelige intake naar gevalideerde aangifte. AI doet het werk op schaal, de mens stuurt en oordeelt.",
+  title: "GlobalLogistics — GenAI Aangiftecockpit",
+  description:
+    "PoC: van rommelige intake naar gevalideerde aangifte. AI doet het werk op schaal, de mens stuurt en oordeelt.",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="nl">
+    <html lang="nl" className={`${inter.variable} ${fraunces.variable} ${plexMono.variable}`}>
       <body>
         <header className="site-header">
           <div className="wordmark">Waimakers</div>
           <nav className="site-nav">
-            <Link href="/">Werkbank</Link>
-            <Link href="/dashboard">Executive dashboard</Link>
+            <NavLinks />
             <span className="chip-confidential">PoC — Recruitment use only</span>
           </nav>
         </header>
         {children}
         <footer className="site-footer">
-          <span>Project GlobalLogistics · GenAI Strategic Transformation · proof-of-concept op steekproef</span>
-          <span className="lead-make">Learn. Lead. <em>Make.</em></span>
+          <div className="footer-inner">
+            <span>Project GlobalLogistics · GenAI Strategic Transformation · proof-of-concept op steekproef</span>
+            <span className="lead-make">Learn. Lead. <em>Make.</em></span>
+          </div>
         </footer>
       </body>
     </html>
