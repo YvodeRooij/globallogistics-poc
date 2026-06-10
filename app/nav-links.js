@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// /pipeline bestaat nog als verborgen presentatiemodus (volledig scherm-spoor),
+// maar de cockpit toont de pipeline nu zelf in het middenpaneel.
 const LINKS = [
   { href: "/", label: "Aangiftecockpit" },
-  { href: "/pipeline", label: "Live pipeline" },
   { href: "/dashboard", label: "Executive dashboard" },
 ];
 

@@ -2,18 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-
-const STAGE_DEFS = [
-  { n: 0, name: "Intake & normalisatie", who: "code", what: "magic bytes · sha256-dedupe · mail-metadata" },
-  { n: 1, name: "Classificatie (inhoud)", who: "AI", what: "documenttype op inhoud, nooit op bestandsnaam" },
-  { n: 2, name: "Extractie", who: "AI", what: "velden + regels, datums ruw, niets verzonnen" },
-  { n: 3, name: "Deterministische validatie", who: "code", what: "rekenregels · ISO 6346 · injectie-scan" },
-  { n: 4, name: "Dossier & kruisvalidatie", who: "code", what: "factuur ↔ paklijst ↔ excel · verrijking" },
-  { n: 5, name: "HS-sanity", who: "code", what: "formaat + precedent (TARIC in productie)" },
-  { n: 6, name: "LLM-judges (tegenspraak)", who: "AI · ander model", what: "per-veld verificatie + HS-advocaat van de duivel" },
-  { n: 7, name: "Risicoscore & routing", who: "code", what: "harde regels boven de score" },
-  { n: 8, name: "Besluit declarant", who: "mens", what: "tekenen, corrigeren of terug naar klant" },
-];
+import StageRail, { emptyStages, applyStageEvent } from "../stage-rail";
 
 const ROUTE_LABEL = {
   auto_ok: "Auto-OK",
@@ -23,8 +12,6 @@ const ROUTE_LABEL = {
   escalatie_classificatie: "Escalatie classificatie",
   duplicaat: "Duplicaat",
 };
-
-const emptyStages = () => STAGE_DEFS.map((d) => ({ ...d, status: "pending", summary: "", ms: null }));
 
 export default function PipelinePage() {
   const [stages, setStages] = useState(emptyStages());
@@ -38,9 +25,7 @@ export default function PipelinePage() {
   const seenRuns = useRef(new Set());
   const replaying = useRef(false);
 
-  const applyStageEvent = (ev) => {
-    setStages((prev) => prev.map((s) => (s.n === ev.stage ? { ...s, status: ev.status, summary: ev.summary || s.summary, ms: ev.ms ?? s.ms, request_id: ev.request_id || s.request_id, model: ev.model || s.model } : s)));
-  };
+  const onStageEvent = (ev) => setStages((prev) => applyStageEvent(prev, ev));
 
   /* Een run die elders binnenkwam (mail-watcher) naspelen in het spoor. */
   const replayRun = async (doc, label) => {
@@ -51,7 +36,7 @@ export default function PipelinePage() {
     setRunLabel(label);
     setStages(emptyStages());
     for (const t of doc.trace || []) {
-      applyStageEvent({ stage: t.stage, status: t.status, summary: t.summary, ms: t.ms, request_id: t.request_id, model: t.model });
+      onStageEvent({ stage: t.stage, status: t.status, summary: t.summary, ms: t.ms, request_id: t.request_id, model: t.model });
       await new Promise((r) => setTimeout(r, Math.min(700, Math.max(150, (t.ms || 0) / 8))));
     }
     setRunDoc(doc);
@@ -108,7 +93,7 @@ export default function PipelinePage() {
         if (!line.trim()) return;
         let ev;
         try { ev = JSON.parse(line); } catch { return; }
-        if (ev.type === "stage") applyStageEvent(ev);
+        if (ev.type === "stage") onStageEvent(ev);
         else if (ev.type === "result") { setRunDoc(ev.doc); seenRuns.current.add(ev.doc.runId); }
         else if (ev.type === "attachment") setRunLabel(`${ev.filename} (bijlage ${ev.index}/${ev.total})`);
         else if (ev.type === "error") lastError = ev.error;
@@ -149,24 +134,7 @@ export default function PipelinePage() {
             <span>{runLabel ? `Verwerking · ${runLabel}` : "Wachtend op een document"}</span>
             {busy && <span className="counts"><b className="c-warn">live</b></span>}
           </h3>
-          <div>
-            {stages.map((s) => (
-              <div className={`pipe-stage ${s.status}`} key={s.n}>
-                <span className="ps-marker">
-                  {s.status === "start" ? <span className="spinner" style={{ margin: 0 }} /> : s.status === "done" ? "✓" : s.status === "error" ? "✕" : s.status === "skip" ? "–" : s.n}
-                </span>
-                <span className="ps-body">
-                  <span className="ps-head">
-                    <b>{s.name}</b>
-                    <span className={`ps-who ${s.who.startsWith("AI") ? "ai" : s.who === "mens" ? "mens" : ""}`}>{s.who}</span>
-                    {s.ms != null && s.status !== "pending" && <span className="ps-ms">{(s.ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })}s</span>}
-                  </span>
-                  <span className="ps-sum">{s.summary || s.what}</span>
-                  {s.request_id && <span className="ps-req">{s.model} · {s.request_id}</span>}
-                </span>
-              </div>
-            ))}
-          </div>
+          <StageRail stages={stages} />
         </section>
 
         {/* ---- intake + resultaat ---- */}

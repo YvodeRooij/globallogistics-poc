@@ -9,6 +9,7 @@ import {
   tierLabel,
   displayFields,
 } from "../lib/data";
+import StageRail, { emptyStages, applyStageEvent } from "./stage-rail";
 
 const TIER_INFO = {
   1: {
@@ -50,24 +51,28 @@ function sendFeedback(payload) {
 
 export default function Cockpit() {
   const [selectedId, setSelectedId] = useState(documents[0].id);
-  const [decisions, setDecisions] = useState({}); // id -> "approved" | "submitted"
+  const [decisions, setDecisions] = useState({});
   const [hsAccepted, setHsAccepted] = useState({});
   const [openTier, setOpenTier] = useState(null);
   const [liveDocs, setLiveDocs] = useState([]);
-  const [busy, setBusy] = useState(null); // { label, stage? }
+  const [liveRun, setLiveRun] = useState(null); // { label, stages, focus }
   const [liveError, setLiveError] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [showMail, setShowMail] = useState(false);
+  const [toast, setToast] = useState(null); // { docId, text }
+  const [mailInfo, setMailInfo] = useState({ watcher: false, address: null });
   const fileInput = useRef(null);
+  const runActive = useRef(false); // geen toast voor runs die we zelf gestart hebben
 
-  // Runs die buiten deze pagina om zijn binnengekomen (Live pipeline-pagina,
-  // mail-watcher) verschijnen vanzelf in de wachtrij via de feed.
+  /* Runs van buitenaf (mail-watcher, /pipeline-presentatiemodus) komen via de feed binnen. */
   useEffect(() => {
     let stop = false;
     const poll = async () => {
       try {
         const j = await fetch("/api/feed").then((r) => r.json());
-        if (stop || !Array.isArray(j.runs)) return;
+        if (stop) return;
+        setMailInfo({ watcher: j.mailWatcher, address: j.mailAddress });
+        if (!Array.isArray(j.runs)) return;
         setLiveDocs((prev) => {
           const have = new Set(prev.map((d) => d.id));
           const add = [];
@@ -75,6 +80,13 @@ export default function Cockpit() {
             if (have.has(r.id)) continue;
             have.add(r.id);
             add.push({ ...r, tier: null });
+          }
+          if (add.length && !runActive.current) {
+            const first = add[0];
+            setToast({
+              docId: first.id,
+              text: `${first.mail ? "✉ Per mail binnengekomen" : "Verwerkt"}: ${first.id.replace(" · LIVE", "")} · ${ROUTE_LABEL[first.status] || first.status}`,
+            });
           }
           return add.length ? [...add, ...prev] : prev;
         });
@@ -84,6 +96,12 @@ export default function Cockpit() {
     const t = setInterval(poll, 3000);
     return () => { stop = true; clearInterval(t); };
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 9000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const allDocs = useMemo(() => [...liveDocs, ...documents], [liveDocs]);
   const doc = useMemo(() => allDocs.find((d) => d.id === selectedId) || allDocs[0], [allDocs, selectedId]);
@@ -123,8 +141,15 @@ export default function Cockpit() {
     });
   };
 
+  const selectDoc = (id) => {
+    setSelectedId(id);
+    setShowMail(false);
+    setLiveRun((r) => (r ? { ...r, focus: false } : r)); // run draait door als ghost-rij
+  };
+
   async function runAnalysis(request, label, fileUrl) {
-    setBusy({ label });
+    runActive.current = true;
+    setLiveRun({ label, stages: emptyStages(), focus: true });
     setLiveError(null);
     try {
       const res = await fetch("/api/pipeline", request);
@@ -136,41 +161,44 @@ export default function Cockpit() {
       const decoder = new TextDecoder();
       let buf = "";
       let lastError = null;
-      let gotResult = false;
+      let resultDoc = null;
       const handleLine = (line) => {
         if (!line.trim()) return;
         let ev;
         try { ev = JSON.parse(line); } catch { return; }
-        if (ev.type === "stage") setBusy({ label, stage: ev });
-        else if (ev.type === "result") {
-          gotResult = true;
-          const liveDoc = { ...ev.doc, tier: null, fileUrl };
-          setLiveDocs((prev) => [liveDoc, ...prev.filter((d) => d.id !== liveDoc.id)]);
-          setSelectedId(liveDoc.id);
-          setShowMail(false);
-        } else if (ev.type === "error") lastError = ev.error;
+        if (ev.type === "stage") setLiveRun((r) => (r ? { ...r, stages: applyStageEvent(r.stages, ev) } : r));
+        else if (ev.type === "attachment") setLiveRun((r) => (r ? { ...r, label: `${ev.filename} (bijlage ${ev.index}/${ev.total})` } : r));
+        else if (ev.type === "result") resultDoc = ev.doc;
+        else if (ev.type === "error") lastError = ev.error;
       };
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
         buf += decoder.decode(value, { stream: true });
         let nl;
-        while ((nl = buf.indexOf("\n")) >= 0) {
-          handleLine(buf.slice(0, nl));
-          buf = buf.slice(nl + 1);
-        }
+        while ((nl = buf.indexOf("\n")) >= 0) { handleLine(buf.slice(0, nl)); buf = buf.slice(nl + 1); }
       }
       handleLine(buf);
-      if (lastError && !gotResult) throw new Error(lastError);
+      if (resultDoc) {
+        // laatste vinkje even laten staan, dan schuift het document de werkplek in
+        await new Promise((r) => setTimeout(r, 900));
+        const liveDoc = { ...resultDoc, tier: null, fileUrl: resultDoc.fileUrl || fileUrl };
+        setLiveDocs((prev) => [liveDoc, ...prev.filter((d) => d.id !== liveDoc.id)]);
+        setSelectedId(liveDoc.id);
+        setShowMail(false);
+      } else if (lastError) {
+        throw new Error(lastError);
+      }
     } catch (err) {
       setLiveError(err.message);
     } finally {
-      setBusy(null);
+      setLiveRun(null);
+      runActive.current = false;
     }
   }
 
   function analyzeCurrent() {
-    if (!docFileUrl(doc) || doc.live) return;
+    if (!docFileUrl(doc) || doc.live || liveRun) return;
     runAnalysis(
       { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ docId: doc.id }) },
       doc.id,
@@ -179,7 +207,7 @@ export default function Cockpit() {
   }
 
   function analyzeFile(file) {
-    if (!file) return;
+    if (!file || liveRun) return;
     const lower = file.name.toLowerCase();
     if (!lower.endsWith(".pdf") && !lower.endsWith(".eml")) {
       setLiveError("Alleen PDF of .eml wordt ondersteund in de live-analyse.");
@@ -192,7 +220,9 @@ export default function Cockpit() {
   }
 
   const fileUrl = docFileUrl(doc);
-  const busyStageText = busy?.stage ? `stage ${busy.stage.stage}/8 · ${busy.stage.name}` : "pipeline gestart…";
+  const railFocus = Boolean(liveRun?.focus);
+  const currentStage = liveRun ? [...liveRun.stages].reverse().find((s) => s.status !== "pending") : null;
+  const stageLabel = currentStage ? `stage ${currentStage.n}/8 · ${currentStage.name}` : "pipeline gestart…";
 
   return (
     <main className="page">
@@ -227,6 +257,19 @@ export default function Cockpit() {
       <div className="bench">
         {/* --------- wachtrij --------- */}
         <aside className="queue-rail">
+          {liveRun && (
+            <div className="queue">
+              <h3><span>Wordt verwerkt</span><span className="tier-meta"><span className="tier-count">1</span></span></h3>
+              <button className={`ghost ${railFocus ? "on" : ""}`} onClick={() => setLiveRun((r) => (r ? { ...r, focus: true } : r))}>
+                <span className="qn">
+                  <span className="spinner" style={{ marginRight: 0 }} />
+                  <span className="name">{liveRun.label}</span>
+                </span>
+                <span className="qm">{stageLabel}</span>
+              </button>
+            </div>
+          )}
+
           {liveDocs.length > 0 && (
             <div className="queue">
               <h3>
@@ -234,7 +277,7 @@ export default function Cockpit() {
                 <span className="tier-meta"><span className="tier-count">{liveDocs.length}</span></span>
               </h3>
               {liveDocs.map((d) => (
-                <button key={d.runId || d.id} className={d.id === doc.id ? "on" : ""} onClick={() => setSelectedId(d.id)}>
+                <button key={d.runId || d.id} className={d.id === doc.id && !railFocus ? "on" : ""} onClick={() => selectDoc(d.id)}>
                   <span className="qn">
                     <span className="name">{d.id.replace(" · LIVE", "")}</span>
                     <span className="live-chip">Live</span>
@@ -268,7 +311,7 @@ export default function Cockpit() {
                 </span>
               </h3>
               {byTier[tier].map((d) => (
-                <button key={d.id} className={d.id === doc.id ? "on" : ""} onClick={() => setSelectedId(d.id)}>
+                <button key={d.id} className={d.id === doc.id && !railFocus ? "on" : ""} onClick={() => selectDoc(d.id)}>
                   <span className="qn">
                     <span className="name">{d.id}</span>
                     <span className={`dot ${decisions[d.id] ? "pass" : worstLevel(d)}`} />
@@ -283,18 +326,18 @@ export default function Cockpit() {
           ))}
 
           <div
-            className={`dropzone ${dragOver ? "over" : ""} ${busy ? "busy" : ""}`}
+            className={`dropzone ${dragOver ? "over" : ""} ${liveRun ? "busy" : ""}`}
             role="button"
             tabIndex={0}
-            onClick={() => !busy && fileInput.current?.click()}
-            onKeyDown={(e) => e.key === "Enter" && !busy && fileInput.current?.click()}
+            onClick={() => !liveRun && fileInput.current?.click()}
+            onKeyDown={(e) => e.key === "Enter" && !liveRun && fileInput.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); if (!busy) analyzeFile(e.dataTransfer.files?.[0]); }}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); if (!liveRun) analyzeFile(e.dataTransfer.files?.[0]); }}
           >
-            {busy ? (
+            {liveRun ? (
               <><span className="spinner" /><strong style={{ display: "inline" }}>Pipeline draait…</strong>
-                <span className="dz-sub" style={{ display: "block" }}>{busyStageText}</span></>
+                <span className="dz-sub" style={{ display: "block" }}>{stageLabel}</span></>
             ) : (
               <><strong>Analyseer een document live</strong>
                 Sleep hier een PDF of .eml uit de datadump
@@ -309,171 +352,226 @@ export default function Cockpit() {
               onChange={(e) => { analyzeFile(e.target.files?.[0]); e.target.value = ""; }}
             />
           </div>
+
+          <div className="mail-line">
+            <span className={`ms-dot ${mailInfo.watcher ? "on" : ""}`} />
+            {mailInfo.watcher ? (
+              <span>Mailbox live: <b>{mailInfo.address}</b> — mail met PDF start de pipeline vanzelf</span>
+            ) : (
+              <span>Mailbox-watcher uit — <code>npm run mail-watcher</code> of sleep een .eml</span>
+            )}
+          </div>
         </aside>
 
-        {/* --------- document --------- */}
+        {/* --------- midden: document óf live pipeline --------- */}
         <section className="doc-pane">
-          <div className="bar">
-            <span className="file">{doc.id}</span>
-            <span className="bar-meta">
-              <span className="pill">inhoud · {doc.type_detected}</span>
-              {doc.type_from_filename && doc.type_from_filename !== doc.type_detected && (
-                <span className="pill mismatch">bestandsnaam zei · {doc.type_from_filename}</span>
-              )}
-              {!doc.live && fileUrl && (
-                <button className="btn-live" onClick={analyzeCurrent} disabled={Boolean(busy)}>
-                  {busy ? "Bezig…" : "Analyseer live"}
-                </button>
-              )}
-            </span>
-          </div>
-          {fileUrl ? (
-            <object data={fileUrl} type="application/pdf">
-              <DocFallback doc={doc} />
-            </object>
+          {railFocus ? (
+            <>
+              <div className="bar">
+                <span className="file">{liveRun.label}</span>
+                <span className="bar-meta">
+                  <span className="pill accent-pill">pipeline · live</span>
+                </span>
+              </div>
+              <StageRail stages={liveRun.stages} />
+            </>
           ) : (
-            <DocFallback doc={doc} />
+            <>
+              <div className="bar">
+                <span className="file">{doc.id}</span>
+                <span className="bar-meta">
+                  <span className="pill">inhoud · {doc.type_detected}</span>
+                  {doc.type_from_filename && doc.type_from_filename !== doc.type_detected && (
+                    <span className="pill mismatch">bestandsnaam zei · {doc.type_from_filename}</span>
+                  )}
+                  {!doc.live && fileUrl && (
+                    <button className="btn-live" onClick={analyzeCurrent} disabled={Boolean(liveRun)}>
+                      {liveRun ? "Bezig…" : "Analyseer live"}
+                    </button>
+                  )}
+                </span>
+              </div>
+              {fileUrl ? (
+                <object data={fileUrl} type="application/pdf">
+                  <DocFallback doc={doc} />
+                </object>
+              ) : (
+                <DocFallback doc={doc} />
+              )}
+            </>
           )}
         </section>
 
-        {/* --------- extractie & besluit --------- */}
-        <section className="panel">
-          <div className="card">
-            <h3>
-              <span>Geëxtraheerde kerngegevens</span>
-              {doc.live && doc.status && <span className="counts"><b className="route-badge">{ROUTE_LABEL[doc.status] || doc.status}</b></span>}
-            </h3>
-            <div className="fields">
-              {displayFields(doc).map((f) => (
-                <div className="field" key={f.label}>
-                  <div className="fl">{f.label}</div>
-                  <div className="fv">{f.missing ? <span className="missing-badge">Ontbreekt</span> : f.value}</div>
-                </div>
-              ))}
-            </div>
-            {doc.live && (
-              <div className="pad live-meta">
-                pipeline {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s · extractie {doc.model} · judges {doc.judge?.model || "—"} · risicoscore {doc.score}
+        {/* --------- rechts: extractie & besluit (of skeleton tijdens run) --------- */}
+        {railFocus ? (
+          <section className="panel">
+            <div className="card skeleton-card">
+              <h3><span>Geëxtraheerde kerngegevens</span></h3>
+              <div className="pad">
+                <div className="sk-line w70" /><div className="sk-line w50" /><div className="sk-line w60" />
+                <p className="micro">Velden verschijnen na stage 2 (extractie).</p>
               </div>
-            )}
-          </div>
-
-          <div className="card">
-            <h3>
-              <span>Bevindingen · onzekerheid eerst</span>
-              <span className="counts">
-                {failCount > 0 && <b className="c-fail">{failCount} fout</b>}
-                {warnCount > 0 && <b className="c-warn">{warnCount} check</b>}
-                {passCount > 0 && <b className="c-pass">{passCount} ok</b>}
-              </span>
-            </h3>
-            <div>
-              {findings.length === 0 && (
-                <div className="finding pass">
-                  <span className="tag">OK</span>
-                  <span className="msg">Geen bevindingen — alle deterministische checks geslaagd.</span>
+            </div>
+            <div className="card skeleton-card">
+              <h3><span>Bevindingen · onzekerheid eerst</span></h3>
+              <div className="pad">
+                <div className="sk-line w80" /><div className="sk-line w65" />
+                <p className="micro">Rekenregels draaien in stage 3, de judges in stage 6.</p>
+              </div>
+            </div>
+            <div className="card skeleton-card">
+              <h3><span>Besluit declarant</span></h3>
+              <div className="pad">
+                <p className="micro">De machine doet het voorwerk — het besluit blijft hier, bij de mens.</p>
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section className="panel">
+            <div className="card">
+              <h3>
+                <span>Geëxtraheerde kerngegevens</span>
+                {doc.live && doc.status && <span className="counts"><b className="route-badge">{ROUTE_LABEL[doc.status] || doc.status}</b></span>}
+              </h3>
+              <div className="fields">
+                {displayFields(doc).map((f) => (
+                  <div className="field" key={f.label}>
+                    <div className="fl">{f.label}</div>
+                    <div className="fv">{f.missing ? <span className="missing-badge">Ontbreekt</span> : f.value}</div>
+                  </div>
+                ))}
+              </div>
+              {doc.live && (
+                <div className="pad live-meta">
+                  pipeline {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s · extractie {doc.model} · judges {doc.judge?.model || "—"} · risicoscore {doc.score}
                 </div>
               )}
-              {findings.map((f, i) => (
-                <div className={`finding ${f.level}`} key={i}>
-                  <span className="tag">{f.level === "fail" ? "Fout" : f.level === "warn" ? "Check" : "OK"}</span>
-                  <span className="msg">
-                    {f.msg}
-                    {f.resolution ? <span className="res">→ {f.resolution}</span> : null}
-                  </span>
-                </div>
-              ))}
             </div>
-          </div>
 
-          {doc.hs_suggestion && (
-            <div className="card hs-card">
-              <h3>
-                <span>HS-classificatie · voorstel</span>
-                <span className="ai-chip">AI-voorstel</span>
-              </h3>
-              <div className="pad">
-                <div className="hs-code">{doc.hs_suggestion.code}</div>
-                <div className="hs-confline">
-                  <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%{doc.hs_suggestion.challenged ? " · verlaagd na tegenspraak" : ""}</span>
-                  <span className="hs-meter"><span style={{ width: `${Math.round(doc.hs_suggestion.confidence * 100)}%` }} /></span>
-                </div>
-                <p className="hs-reason">{doc.hs_suggestion.reasoning}</p>
-                <ul className="hs-prec">
-                  {doc.hs_suggestion.precedents.map((p, i) => (
-                    <li key={i}>{p}</li>
-                  ))}
-                </ul>
-                <div className="hs-note">De declarant tekent, niet het model</div>
-                <div className="actions" style={{ marginTop: 14 }}>
-                  <button className="btn accent" onClick={acceptHs} disabled={hsAccepted[doc.id]}>
-                    {hsAccepted[doc.id] ? "Code bevestigd ✓" : "Code bevestigen"}
-                  </button>
-                  <button className="btn secondary" disabled={hsAccepted[doc.id]}>Andere code kiezen</button>
-                </div>
-                {hsAccepted[doc.id] && (
-                  <p className="micro">Bevestigde code is toegevoegd aan de precedentbibliotheek — het volgende Tulip-document herkent dit meteen.</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {doc.live && Array.isArray(doc.trace) && (
             <div className="card">
-              <h3><span>Pipeline-trace · 8 stages</span></h3>
-              <div className="trace-list">
-                {doc.trace.map((t, i) => (
-                  <div className={`trace-row ${t.status}`} key={i}>
-                    <span className="t-stage">{t.stage}</span>
-                    <span className="t-name">{t.name}</span>
-                    <span className="t-sum">{t.summary}{t.request_id ? <span className="t-req"> · {t.request_id}</span> : null}</span>
-                    <span className="t-ms">{t.ms != null ? `${(t.ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })}s` : ""}</span>
+              <h3>
+                <span>Bevindingen · onzekerheid eerst</span>
+                <span className="counts">
+                  {failCount > 0 && <b className="c-fail">{failCount} fout</b>}
+                  {warnCount > 0 && <b className="c-warn">{warnCount} check</b>}
+                  {passCount > 0 && <b className="c-pass">{passCount} ok</b>}
+                </span>
+              </h3>
+              <div>
+                {findings.length === 0 && (
+                  <div className="finding pass">
+                    <span className="tag">OK</span>
+                    <span className="msg">Geen bevindingen — alle deterministische checks geslaagd.</span>
+                  </div>
+                )}
+                {findings.map((f, i) => (
+                  <div className={`finding ${f.level}`} key={i}>
+                    <span className="tag">{f.level === "fail" ? "Fout" : f.level === "warn" ? "Check" : "OK"}</span>
+                    <span className="msg">
+                      {f.msg}
+                      {f.resolution ? <span className="res">→ {f.resolution}</span> : null}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
-          )}
 
-          <div className="card">
-            <h3><span>Besluit declarant</span></h3>
-            <div className="pad">
-              {decision === "submitted" ? (
-                <p className="status-line ok">Ingediend bij DUANE 4 (simulatie) ✓ · audit trail vastgelegd</p>
-              ) : decision === "approved" ? (
-                <div className="actions">
-                  <button className="btn" onClick={submit}>Indienen bij DUANE 4 (simulatie)</button>
-                </div>
-              ) : (
-                <div className="actions">
-                  <button className="btn" onClick={approve} disabled={needsHs}>
-                    Goedkeuren na review
-                  </button>
-                  <button
-                    className="btn secondary"
-                    onClick={() => doc.conceptMail && setShowMail((v) => !v)}
-                    disabled={doc.live && !doc.conceptMail}
-                  >
-                    Terug naar klant {doc.conceptMail ? "(conceptmail klaar)" : "(auto-conceptmail)"}
-                  </button>
-                </div>
-              )}
-              {needsHs && !decision && <p className="hint-hs">Bevestig eerst de HS-code hierboven.</p>}
-              {showMail && doc.conceptMail && (
-                <div className="mail-panel">
-                  <div className="mail-head">
-                    <span><b>Aan:</b> {doc.conceptMail.to}</span>
-                    <span><b>Onderwerp:</b> {doc.conceptMail.subject}</span>
+            {doc.hs_suggestion && (
+              <div className="card hs-card">
+                <h3>
+                  <span>HS-classificatie · voorstel</span>
+                  <span className="ai-chip">AI-voorstel</span>
+                </h3>
+                <div className="pad">
+                  <div className="hs-code">{doc.hs_suggestion.code}</div>
+                  <div className="hs-confline">
+                    <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%{doc.hs_suggestion.challenged ? " · verlaagd na tegenspraak" : ""}</span>
+                    <span className="hs-meter"><span style={{ width: `${Math.round(doc.hs_suggestion.confidence * 100)}%` }} /></span>
                   </div>
-                  <pre>{doc.conceptMail.body}</pre>
+                  <p className="hs-reason">{doc.hs_suggestion.reasoning}</p>
+                  <ul className="hs-prec">
+                    {doc.hs_suggestion.precedents.map((p, i) => (
+                      <li key={i}>{p}</li>
+                    ))}
+                  </ul>
+                  <div className="hs-note">De declarant tekent, niet het model</div>
+                  <div className="actions" style={{ marginTop: 14 }}>
+                    <button className="btn accent" onClick={acceptHs} disabled={hsAccepted[doc.id]}>
+                      {hsAccepted[doc.id] ? "Code bevestigd ✓" : "Code bevestigen"}
+                    </button>
+                    <button className="btn secondary" disabled={hsAccepted[doc.id]}>Andere code kiezen</button>
+                  </div>
+                  {hsAccepted[doc.id] && (
+                    <p className="micro">Bevestigde code is toegevoegd aan de precedentbibliotheek — het volgende Tulip-document herkent dit meteen.</p>
+                  )}
                 </div>
-              )}
-              <p className="micro">
-                Elke correctie voedt de precedentbibliotheek en de golden set — het systeem wordt beter van fouten.
-              </p>
+              </div>
+            )}
+
+            {doc.live && Array.isArray(doc.trace) && (
+              <div className="card">
+                <h3><span>Pipeline-trace · 8 stages</span></h3>
+                <div className="trace-list">
+                  {doc.trace.map((t, i) => (
+                    <div className={`trace-row ${t.status}`} key={i}>
+                      <span className="t-stage">{t.stage}</span>
+                      <span className="t-name">{t.name}</span>
+                      <span className="t-sum">{t.summary}{t.request_id ? <span className="t-req"> · {t.request_id}</span> : null}</span>
+                      <span className="t-ms">{t.ms != null ? `${(t.ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })}s` : ""}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="card">
+              <h3><span>Besluit declarant</span></h3>
+              <div className="pad">
+                {decision === "submitted" ? (
+                  <p className="status-line ok">Ingediend bij DUANE 4 (simulatie) ✓ · audit trail vastgelegd</p>
+                ) : decision === "approved" ? (
+                  <div className="actions">
+                    <button className="btn" onClick={submit}>Indienen bij DUANE 4 (simulatie)</button>
+                  </div>
+                ) : (
+                  <div className="actions">
+                    <button className="btn" onClick={approve} disabled={needsHs}>
+                      Goedkeuren na review
+                    </button>
+                    <button
+                      className="btn secondary"
+                      onClick={() => doc.conceptMail && setShowMail((v) => !v)}
+                      disabled={doc.live && !doc.conceptMail}
+                    >
+                      Terug naar klant {doc.conceptMail ? "(conceptmail klaar)" : "(auto-conceptmail)"}
+                    </button>
+                  </div>
+                )}
+                {needsHs && !decision && <p className="hint-hs">Bevestig eerst de HS-code hierboven.</p>}
+                {showMail && doc.conceptMail && (
+                  <div className="mail-panel">
+                    <div className="mail-head">
+                      <span><b>Aan:</b> {doc.conceptMail.to}</span>
+                      <span><b>Onderwerp:</b> {doc.conceptMail.subject}</span>
+                    </div>
+                    <pre>{doc.conceptMail.body}</pre>
+                  </div>
+                )}
+                <p className="micro">
+                  Elke correctie voedt de precedentbibliotheek en de golden set — het systeem wordt beter van fouten.
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
+
+      {toast && (
+        <button className="toast" onClick={() => { selectDoc(toast.docId); setToast(null); }}>
+          {toast.text}
+          <span className="toast-cta">openen →</span>
+        </button>
+      )}
     </main>
   );
 }
