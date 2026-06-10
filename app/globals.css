@@ -318,6 +318,35 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
   border-radius: 4px; padding: 2px 7px; margin-top: 2px;
 }
 
+/* ---- correctie-laag: stage 8 werkbaar ---- */
+.fl-corr {
+  font: 700 9px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--pass); background: var(--pass-bg); border-radius: 3px; padding: 1px 5px; margin-left: 6px;
+}
+.fv-edit {
+  font: 400 11px var(--font-ui); color: var(--faint); background: transparent; border: 0;
+  cursor: pointer; padding: 0 4px; margin-left: 6px; opacity: 0; vertical-align: 1px;
+}
+.field:hover .fv-edit, .fv-edit:focus-visible { opacity: 1; }
+.fv-edit:hover { color: var(--accent-text); }
+.fv-input {
+  width: 100%; font: 600 13px var(--font-ui); color: var(--ink); margin-top: 2px;
+  border: 1.5px solid var(--accent); border-radius: var(--r-xs); padding: 3px 8px;
+  background: #fff; outline: none;
+}
+.fv-input.hs-input { font: 500 24px var(--font-mono); padding: 6px 10px; }
+.resolve-btn {
+  flex: none; margin-left: auto; align-self: flex-start;
+  width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-strong);
+  background: #fff; color: var(--faint); font-size: 12px; line-height: 1; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+}
+.resolve-btn:hover { border-color: var(--pass); color: var(--pass); }
+.resolve-btn.done { background: var(--pass); border-color: var(--pass); color: #fff; }
+.finding.resolved { opacity: 0.55; }
+.finding.resolved .tag { color: var(--pass); }
+.finding.resolved .msg { text-decoration: line-through; text-decoration-color: rgba(95, 102, 115, 0.4); }
+
 .counts { display: flex; gap: 6px; letter-spacing: 0; text-transform: none; }
 .counts b { font-size: 10.5px; font-weight: 700; border-radius: var(--r-full); padding: 2px 8px; }
 .counts .c-fail { color: var(--fail); background: var(--fail-bg); }

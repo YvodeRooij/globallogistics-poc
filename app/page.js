@@ -61,6 +61,11 @@ export default function Cockpit() {
   const [showMail, setShowMail] = useState(false);
   const [toast, setToast] = useState(null); // { docId, text }
   const [mailInfo, setMailInfo] = useState({ watcher: false, address: null });
+  const [fieldEdits, setFieldEdits] = useState({});      // docId -> { veldlabel -> gecorrigeerde waarde }
+  const [editingField, setEditingField] = useState(null); // veldlabel dat nu bewerkt wordt
+  const [resolvedFindings, setResolvedFindings] = useState({}); // docId -> { index -> true }
+  const [hsOverride, setHsOverride] = useState({});      // docId -> handmatig gekozen HS-code
+  const [hsEditing, setHsEditing] = useState(false);
   const fileInput = useRef(null);
   const runActive = useRef(false); // geen toast voor runs die we zelf gestart hebben
 
@@ -113,6 +118,10 @@ export default function Cockpit() {
   const failCount = findings.filter((f) => f.level === "fail").length;
   const warnCount = findings.filter((f) => f.level === "warn").length;
   const passCount = findings.filter((f) => f.level === "pass").length;
+  const openFails = findings.reduce(
+    (n, f, i) => n + (f.level === "fail" && !resolvedFindings[doc.id]?.[i] ? 1 : 0),
+    0
+  );
 
   const totalDocs = agg.docs + liveDocs.length;
   const approvedCount = Object.values(decisions).filter(Boolean).length;
@@ -124,26 +133,47 @@ export default function Cockpit() {
     return groups;
   }, []);
 
+  const hasCorrection = (id) =>
+    Object.keys(fieldEdits[id] || {}).length > 0 || Boolean(hsOverride[id]);
+
   const approve = () => {
     setDecisions((s) => ({ ...s, [doc.id]: "approved" }));
-    sendFeedback({ docId: doc.id, action: "approved", hadCorrection: Boolean(doc.hs_suggestion) });
+    sendFeedback({ docId: doc.id, action: "approved", hadCorrection: hasCorrection(doc.id) });
   };
   const submit = () => {
     setDecisions((s) => ({ ...s, [doc.id]: "submitted" }));
-    sendFeedback({ docId: doc.id, action: "submitted" });
+    sendFeedback({ docId: doc.id, action: "submitted", hadCorrection: hasCorrection(doc.id) });
   };
   const acceptHs = () => {
     setHsAccepted((s) => ({ ...s, [doc.id]: true }));
+    setHsEditing(false);
     sendFeedback({
       docId: doc.id,
       action: "hs_confirmed",
-      hs: { ref: doc.ref, code: doc.hs_suggestion?.code, goederen: doc.extracted?.goods },
+      hadCorrection: Boolean(hsOverride[doc.id]),
+      hs: { ref: doc.ref, code: hsOverride[doc.id] || doc.hs_suggestion?.code, goederen: doc.extracted?.goods },
     });
+  };
+
+  const saveField = (label, raw, current) => {
+    setEditingField(null);
+    const value = String(raw ?? "").trim();
+    if (!value || value === String(current)) return;
+    setFieldEdits((s) => ({ ...s, [doc.id]: { ...(s[doc.id] || {}), [label]: value } }));
+    sendFeedback({ docId: doc.id, action: "field_corrected", field: label });
+  };
+
+  const toggleResolved = (idx, check) => {
+    const was = resolvedFindings[doc.id]?.[idx];
+    setResolvedFindings((s) => ({ ...s, [doc.id]: { ...(s[doc.id] || {}), [idx]: !was } }));
+    if (!was) sendFeedback({ docId: doc.id, action: "finding_resolved", field: check });
   };
 
   const selectDoc = (id) => {
     setSelectedId(id);
     setShowMail(false);
+    setEditingField(null);
+    setHsEditing(false);
     setLiveRun((r) => (r ? { ...r, focus: false } : r)); // run draait door als ghost-rij
   };
 
@@ -434,16 +464,39 @@ export default function Cockpit() {
                 {doc.live && doc.status && <span className="counts"><b className="route-badge">{ROUTE_LABEL[doc.status] || doc.status}</b></span>}
               </h3>
               <div className="fields">
-                {displayFields(doc).map((f) => (
-                  <div className="field" key={f.label}>
-                    <div className="fl">{f.label}</div>
-                    <div className="fv">{f.missing ? <span className="missing-badge">Ontbreekt</span> : f.value}</div>
-                  </div>
-                ))}
+                {displayFields(doc).map((f) => {
+                  const edited = fieldEdits[doc.id]?.[f.label];
+                  const isEditing = editingField === f.label;
+                  return (
+                    <div className="field" key={f.label}>
+                      <div className="fl">
+                        {f.label}
+                        {edited != null && <span className="fl-corr">gecorrigeerd</span>}
+                      </div>
+                      {isEditing ? (
+                        <input
+                          className="fv-input"
+                          autoFocus
+                          defaultValue={edited ?? (f.missing ? "" : f.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveField(f.label, e.currentTarget.value, f.missing ? "" : f.value);
+                            if (e.key === "Escape") setEditingField(null);
+                          }}
+                          onBlur={(e) => saveField(f.label, e.currentTarget.value, f.missing ? "" : f.value)}
+                        />
+                      ) : (
+                        <div className="fv">
+                          {edited != null ? edited : f.missing ? <span className="missing-badge">Ontbreekt</span> : f.value}
+                          <button className="fv-edit" aria-label={`Corrigeer ${f.label}`} title="Corrigeer dit veld" onClick={() => setEditingField(f.label)}>✎</button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               {doc.live && (
                 <div className="pad live-meta">
-                  pipeline {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s · extractie {doc.model} · judges {doc.judge?.model || "—"} · risicoscore {doc.score}
+                  pipeline {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s · extractie {doc.model} · judges {doc.judge?.model || "—"} · risicoscore {doc.score}{typeof doc.cost_usd === "number" ? ` · $${doc.cost_usd.toFixed(2)}` : ""}
                 </div>
               )}
             </div>
@@ -464,15 +517,28 @@ export default function Cockpit() {
                     <span className="msg">Geen bevindingen — alle deterministische checks geslaagd.</span>
                   </div>
                 )}
-                {findings.map((f, i) => (
-                  <div className={`finding ${f.level}`} key={i}>
-                    <span className="tag">{f.level === "fail" ? "Fout" : f.level === "warn" ? "Check" : "OK"}</span>
-                    <span className="msg">
-                      {f.msg}
-                      {f.resolution ? <span className="res">→ {f.resolution}</span> : null}
-                    </span>
-                  </div>
-                ))}
+                {findings.map((f, i) => {
+                  const done = Boolean(resolvedFindings[doc.id]?.[i]);
+                  return (
+                    <div className={`finding ${f.level} ${done ? "resolved" : ""}`} key={i}>
+                      <span className="tag">{done ? "Klaar" : f.level === "fail" ? "Fout" : f.level === "warn" ? "Check" : "OK"}</span>
+                      <span className="msg">
+                        {f.msg}
+                        {f.resolution ? <span className="res">→ {f.resolution}</span> : null}
+                      </span>
+                      {(f.level === "fail" || f.level === "warn") && (
+                        <button
+                          className={`resolve-btn ${done ? "done" : ""}`}
+                          title={done ? "Terugzetten" : "Markeer als afgehandeld (gecontroleerd of gecorrigeerd)"}
+                          aria-label={done ? "Bevinding terugzetten" : "Bevinding afhandelen"}
+                          onClick={() => toggleResolved(i, f.check)}
+                        >
+                          ✓
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -483,10 +549,37 @@ export default function Cockpit() {
                   <span className="ai-chip">AI-voorstel</span>
                 </h3>
                 <div className="pad">
-                  <div className="hs-code">{doc.hs_suggestion.code}</div>
+                  {hsEditing ? (
+                    <input
+                      className="fv-input hs-input"
+                      autoFocus
+                      defaultValue={hsOverride[doc.id] || doc.hs_suggestion.code}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          const v = e.currentTarget.value.trim();
+                          if (v && v !== doc.hs_suggestion.code) setHsOverride((s) => ({ ...s, [doc.id]: v }));
+                          setHsEditing(false);
+                        }
+                        if (e.key === "Escape") setHsEditing(false);
+                      }}
+                      onBlur={(e) => {
+                        const v = e.currentTarget.value.trim();
+                        if (v && v !== doc.hs_suggestion.code) setHsOverride((s) => ({ ...s, [doc.id]: v }));
+                        setHsEditing(false);
+                      }}
+                    />
+                  ) : (
+                    <div className="hs-code">{hsOverride[doc.id] || doc.hs_suggestion.code}</div>
+                  )}
                   <div className="hs-confline">
-                    <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%{doc.hs_suggestion.challenged ? " · verlaagd na tegenspraak" : ""}</span>
-                    <span className="hs-meter"><span style={{ width: `${Math.round(doc.hs_suggestion.confidence * 100)}%` }} /></span>
+                    {hsOverride[doc.id] ? (
+                      <span className="hs-conf">handmatig gekozen door declarant · voorstel was {doc.hs_suggestion.code}</span>
+                    ) : (
+                      <>
+                        <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%{doc.hs_suggestion.challenged ? " · verlaagd na tegenspraak" : ""}</span>
+                        <span className="hs-meter"><span style={{ width: `${Math.round(doc.hs_suggestion.confidence * 100)}%` }} /></span>
+                      </>
+                    )}
                   </div>
                   <p className="hs-reason">{doc.hs_suggestion.reasoning}</p>
                   <ul className="hs-prec">
@@ -497,12 +590,18 @@ export default function Cockpit() {
                   <div className="hs-note">De declarant tekent, niet het model</div>
                   <div className="actions" style={{ marginTop: 14 }}>
                     <button className="btn accent" onClick={acceptHs} disabled={hsAccepted[doc.id]}>
-                      {hsAccepted[doc.id] ? "Code bevestigd ✓" : "Code bevestigen"}
+                      {hsAccepted[doc.id] ? "Code bevestigd ✓" : hsOverride[doc.id] ? "Gekozen code bevestigen" : "Code bevestigen"}
                     </button>
-                    <button className="btn secondary" disabled={hsAccepted[doc.id]}>Andere code kiezen</button>
+                    <button className="btn secondary" onClick={() => setHsEditing(true)} disabled={hsAccepted[doc.id]}>
+                      Andere code kiezen
+                    </button>
                   </div>
                   {hsAccepted[doc.id] && (
-                    <p className="micro">Bevestigde code is toegevoegd aan de precedentbibliotheek — het volgende Tulip-document herkent dit meteen.</p>
+                    <p className="micro">
+                      {hsOverride[doc.id]
+                        ? "Correctie vastgelegd: de gekozen code (mét het afgewezen voorstel) gaat naar de precedentbibliotheek en de golden set."
+                        : "Bevestigde code is toegevoegd aan de precedentbibliotheek — het volgende Tulip-document herkent dit meteen."}
+                    </p>
                   )}
                 </div>
               </div>
@@ -535,7 +634,7 @@ export default function Cockpit() {
                   </div>
                 ) : (
                   <div className="actions">
-                    <button className="btn" onClick={approve} disabled={needsHs}>
+                    <button className="btn" onClick={approve} disabled={needsHs || openFails > 0}>
                       Goedkeuren na review
                     </button>
                     <button
@@ -547,7 +646,12 @@ export default function Cockpit() {
                     </button>
                   </div>
                 )}
-                {needsHs && !decision && <p className="hint-hs">Bevestig eerst de HS-code hierboven.</p>}
+                {!decision && openFails > 0 && (
+                  <p className="hint-hs">
+                    Nog {openFails} harde fout{openFails === 1 ? "" : "en"} open — corrigeer het veld (✎) of vink de bevinding af (✓) na controle.
+                  </p>
+                )}
+                {needsHs && !decision && openFails === 0 && <p className="hint-hs">Bevestig eerst de HS-code hierboven.</p>}
                 {showMail && doc.conceptMail && (
                   <div className="mail-panel">
                     <div className="mail-head">

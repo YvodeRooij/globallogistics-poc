@@ -29,7 +29,7 @@ const LEARNINGS = [
     owner: "CFO · Bart",
     title: "Klopt de business case met gemeten cijfers?",
     measure: "Kosten per aangifte vóór en ná — gemeten, geen vendor-schatting. En: de kill-criteria werken; bij gate 1 moet goedkoop stoppen kunnen.",
-    liveKey: "routes",
+    liveKey: "cost",
   },
   {
     nr: "L5",
@@ -47,9 +47,19 @@ function liveValue(key, stats) {
       return stats.judge_agreement != null
         ? { v: `${Math.round(stats.judge_agreement * 100)}%`, l: "judge-agreement deze sessie (proxy — golden set komt in de pilot)" }
         : null;
-    case "duration":
-      return stats.avg_duration_ms
-        ? { v: `${(stats.avg_duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s`, l: "gemeten pipeline-doorlooptijd per document" }
+    case "duration": {
+      if (!stats.avg_duration_ms) return null;
+      const review = stats.avg_review_ms != null
+        ? ` · review gemiddeld ${(stats.avg_review_ms / 60000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} min`
+        : "";
+      return {
+        v: `${(stats.avg_duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s`,
+        l: `machinetijd per document${review} — samen de echte doorlooptijd`,
+      };
+    }
+    case "cost":
+      return stats.avg_cost_usd != null
+        ? { v: `$${stats.avg_cost_usd.toFixed(2)}`, l: "gemeten AI-kosten per document (API-usage × prijslijst) — menstijd en infra komen erbij in de pilot" }
         : null;
     case "rubber": {
       if (stats.rubber_stamp_ratio == null) return null;
@@ -96,7 +106,7 @@ export default function PilotLearnings() {
         </div>
         {stats?.runs > 0 && (
           <div className="learnings-live">
-            <span className="ms-dot on" /> {stats.runs} live runs in deze sessie · {stats.precedents} precedent{stats.precedents === 1 ? "" : "en"} bevestigd
+            <span className="ms-dot on" /> {stats.runs} live runs · {stats.precedents} precedent{stats.precedents === 1 ? "" : "en"} bevestigd · ${(stats.total_cost_usd || 0).toFixed(2)} API-kosten deze sessie
           </div>
         )}
       </div>
