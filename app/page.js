@@ -11,19 +11,42 @@ import {
 } from "../lib/data";
 import StageRail, { emptyStages, applyStageEvent } from "./stage-rail";
 
+/* Tiers = documentkwaliteit bij binnenkomst. De tier bepaalt hoeveel het
+   systeem zelf kan en hoe kritisch ú moet kijken. */
 const TIER_INFO = {
   1: {
     title: "Tier 1 · Schoon digitaal",
-    body: "Nette digitale aanlevering: juiste bestandsnamen en leesbare PDF's. Het systeem vult vrijwel alles automatisch in; u controleert en keurt goed.",
+    body: "Komt binnen als nette digitale PDF of Excel: de tekst is door de computer te lezen en de bestandsnaam klopt met de inhoud. Wat dit voor u betekent: vrijwel alle velden staan vooraf ingevuld — u controleert alleen de gemarkeerde bevindingen en keurt goed. Snelste categorie (~1-2 min per document).",
   },
   2: {
     title: "Tier 2 · Misleidend formaat",
-    body: "Bestanden waarvan de naam of het formaat niet klopt met de inhoud, zoals een „factuur” die een pakbon blijkt. Het systeem leest de inhoud, niet de bestandsnaam, en markeert elke afwijking.",
+    body: "Digitaal leesbaar, maar het bestand misleidt: een „factuur” die een pakbon blijkt, een bestandsnaam met het verkeerde jaar. Wat dit voor u betekent: het systeem classificeert op de ínhoud en toont u precies waar naam en inhoud botsen — die conflicten zijn uw controlepunten.",
   },
   3: {
     title: "Tier 3 · Scans & foto's",
-    body: "Gescande documenten en telefoonfoto's. Hier is de kans op leesfouten het grootst: elk geëxtraheerd veld verdient uw kritische blik vóór goedkeuring.",
+    body: "Gescand of gefotografeerd (scanner, WhatsApp, telefoon): de computer moet het beeld eerst ontcijferen en kan zich daarbij vergissen. Wat dit voor u betekent: hier staan bewust de méést kritische markeringen — loop de geëxtraheerde velden langs het origineel en corrigeer waar nodig.",
   },
+};
+
+/* Welke check hoort bij welk veld — de "Corrigeer"-knop op een bevinding
+   opent direct het juiste veld. */
+const CHECK_FIELD = {
+  verplicht_veld_origin: "Land van oorsprong",
+  verplicht_veld_valuta: "Valuta",
+  verplicht_veld_incoterms: "Incoterms",
+  verrijking: "Land van oorsprong",
+  regelsom_vs_koptotaal_netto: "Netto kg (kop)",
+  regelsom_vs_koptotaal_net: "Netto kg (kop)",
+  regelsom_vs_koptotaal_bruto: "Bruto kg (kop)",
+  regelsom_vs_koptotaal: "Netto kg (kop)",
+  netto_vs_bruto: "Netto kg (kop)",
+  gewichtsplausibiliteit: "Netto kg (kop)",
+  rekensom_regels: "Totaal",
+  datum_ambigu: "Datum (bron)",
+  datumformaat: "Datum (bron)",
+  ref_vs_datum: "Datum (bron)",
+  container_checkdigit: "Container",
+  zendingref_ontbreekt: "Zendingref",
 };
 
 const ROUTE_LABEL = {
@@ -63,6 +86,7 @@ export default function Cockpit() {
   const [mailInfo, setMailInfo] = useState({ watcher: false, address: null });
   const [fieldEdits, setFieldEdits] = useState({});      // docId -> { veldlabel -> gecorrigeerde waarde }
   const [editingField, setEditingField] = useState(null); // veldlabel dat nu bewerkt wordt
+  const [editPrefill, setEditPrefill] = useState(null);   // voorgestelde waarde (bv. uit dossier-verrijking)
   const [resolvedFindings, setResolvedFindings] = useState({}); // docId -> { index -> true }
   const [hsOverride, setHsOverride] = useState({});      // docId -> handmatig gekozen HS-code
   const [hsEditing, setHsEditing] = useState(false);
@@ -122,6 +146,7 @@ export default function Cockpit() {
     (n, f, i) => n + (f.level === "fail" && !resolvedFindings[doc.id]?.[i] ? 1 : 0),
     0
   );
+  const fieldLabelSet = useMemo(() => new Set(displayFields(doc).map((r) => r.label)), [doc]);
 
   const totalDocs = agg.docs + liveDocs.length;
   const approvedCount = Object.values(decisions).filter(Boolean).length;
@@ -155,12 +180,42 @@ export default function Cockpit() {
     });
   };
 
+  /* Een correctie op een veld handelt de gekoppelde bevinding(en) automatisch af. */
+  const resolveLinked = (label) => {
+    const linked = {};
+    findings.forEach((f, i) => {
+      const fLabel = f.fix?.label || CHECK_FIELD[f.check];
+      if (fLabel === label && (f.level === "fail" || f.level === "warn")) linked[i] = true;
+    });
+    if (Object.keys(linked).length) {
+      setResolvedFindings((s) => ({ ...s, [doc.id]: { ...(s[doc.id] || {}), ...linked } }));
+    }
+  };
+
   const saveField = (label, raw, current) => {
     setEditingField(null);
+    setEditPrefill(null);
     const value = String(raw ?? "").trim();
     if (!value || value === String(current)) return;
     setFieldEdits((s) => ({ ...s, [doc.id]: { ...(s[doc.id] || {}), [label]: value } }));
+    resolveLinked(label);
     sendFeedback({ docId: doc.id, action: "field_corrected", field: label });
+  };
+
+  /* "Corrigeer" op een bevinding: opent direct het juiste veld (met prefill bij verrijking). */
+  const correctFinding = (f) => {
+    const label = f.fix?.label || CHECK_FIELD[f.check];
+    if (!label) return;
+    setEditPrefill(f.fix?.value ?? null);
+    setEditingField(label);
+  };
+
+  /* "Neem over": dossier-verrijking in één klik toepassen. */
+  const applyFix = (f) => {
+    if (!f.fix?.label || f.fix.value == null) return;
+    setFieldEdits((s) => ({ ...s, [doc.id]: { ...(s[doc.id] || {}), [f.fix.label]: String(f.fix.value) } }));
+    resolveLinked(f.fix.label);
+    sendFeedback({ docId: doc.id, action: "field_corrected", field: f.fix.label });
   };
 
   const toggleResolved = (idx, check) => {
@@ -173,6 +228,7 @@ export default function Cockpit() {
     setSelectedId(id);
     setShowMail(false);
     setEditingField(null);
+    setEditPrefill(null);
     setHsEditing(false);
     setLiveRun((r) => (r ? { ...r, focus: false } : r)); // run draait door als ghost-rij
   };
@@ -477,7 +533,7 @@ export default function Cockpit() {
                         <input
                           className="fv-input"
                           autoFocus
-                          defaultValue={edited ?? (f.missing ? "" : f.value)}
+                          defaultValue={editPrefill ?? edited ?? (f.missing ? "" : f.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") saveField(f.label, e.currentTarget.value, f.missing ? "" : f.value);
                             if (e.key === "Escape") setEditingField(null);
@@ -519,17 +575,34 @@ export default function Cockpit() {
                 )}
                 {findings.map((f, i) => {
                   const done = Boolean(resolvedFindings[doc.id]?.[i]);
+                  const actionable = f.level === "fail" || f.level === "warn";
+                  const targetLabel = f.fix?.label || CHECK_FIELD[f.check];
+                  const canCorrect = actionable && !done && targetLabel && fieldLabelSet.has(targetLabel);
                   return (
                     <div className={`finding ${f.level} ${done ? "resolved" : ""}`} key={i}>
                       <span className="tag">{done ? "Klaar" : f.level === "fail" ? "Fout" : f.level === "warn" ? "Check" : "OK"}</span>
                       <span className="msg">
                         {f.msg}
                         {f.resolution ? <span className="res">→ {f.resolution}</span> : null}
+                        {(canCorrect || (!done && actionable)) && (
+                          <span className="f-actions">
+                            {!done && f.fix?.value != null && (
+                              <button className="mini-btn accent" onClick={() => applyFix(f)} title="Waarde uit het dossier overnemen — u blijft de bevestiger">
+                                Neem &apos;{f.fix.value}&apos; over
+                              </button>
+                            )}
+                            {canCorrect && !f.fix?.value && (
+                              <button className="mini-btn" onClick={() => correctFinding(f)} title={`Opent het veld '${targetLabel}' om te corrigeren`}>
+                                Corrigeer {targetLabel.toLowerCase()}
+                              </button>
+                            )}
+                          </span>
+                        )}
                       </span>
-                      {(f.level === "fail" || f.level === "warn") && (
+                      {actionable && (
                         <button
                           className={`resolve-btn ${done ? "done" : ""}`}
-                          title={done ? "Terugzetten" : "Markeer als afgehandeld (gecontroleerd of gecorrigeerd)"}
+                          title={done ? "Terugzetten" : "Gecontroleerd — klopt toch, of elders afgehandeld"}
                           aria-label={done ? "Bevinding terugzetten" : "Bevinding afhandelen"}
                           onClick={() => toggleResolved(i, f.check)}
                         >
