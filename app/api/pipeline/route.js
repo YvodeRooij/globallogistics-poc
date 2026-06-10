@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { runPipeline } from "../../../lib/pipeline";
+import { parseEml } from "../../../lib/eml";
 
 export const runtime = "nodejs";
 
@@ -50,9 +51,8 @@ export async function POST(req) {
 
   let docs = [input];
   if (input.eml) {
-    // .eml: parse mail + bijlagen (Blok E) — elke PDF-bijlage wordt een eigen run
+    // .eml: parse mail + bijlagen — elke PDF-bijlage wordt een eigen run
     try {
-      const { parseEml } = await import("../../../lib/eml");
       docs = await parseEml(input.bytes, input.filename);
       if (!docs.length) return Response.json({ error: "Geen PDF-bijlagen gevonden in deze e-mail" }, { status: 400 });
     } catch (err) {

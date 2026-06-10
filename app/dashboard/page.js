@@ -1,4 +1,5 @@
 import { aggregates, metrics } from "../../lib/data";
+import PilotLearnings from "./pilot-learnings";
 
 export const metadata = { title: "Executive dashboard — GlobalLogistics PoC" };
 
@@ -158,6 +159,8 @@ export default function Dashboard() {
           </article>
         ))}
       </div>
+
+      <PilotLearnings />
 
       <aside className="note-strip">
         <div>

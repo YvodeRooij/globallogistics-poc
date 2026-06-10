@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "mail-watcher": "node --env-file=.env.local scripts/mail-watcher.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
+    "imapflow": "^1.4.0",
+    "mailparser": "^3.9.9",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"

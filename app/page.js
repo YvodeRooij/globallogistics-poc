@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   documents,
   sortedFindings,
@@ -59,6 +59,31 @@ export default function Cockpit() {
   const [dragOver, setDragOver] = useState(false);
   const [showMail, setShowMail] = useState(false);
   const fileInput = useRef(null);
+
+  // Runs die buiten deze pagina om zijn binnengekomen (Live pipeline-pagina,
+  // mail-watcher) verschijnen vanzelf in de wachtrij via de feed.
+  useEffect(() => {
+    let stop = false;
+    const poll = async () => {
+      try {
+        const j = await fetch("/api/feed").then((r) => r.json());
+        if (stop || !Array.isArray(j.runs)) return;
+        setLiveDocs((prev) => {
+          const have = new Set(prev.map((d) => d.id));
+          const add = [];
+          for (const r of j.runs) {
+            if (have.has(r.id)) continue;
+            have.add(r.id);
+            add.push({ ...r, tier: null });
+          }
+          return add.length ? [...add, ...prev] : prev;
+        });
+      } catch { /* feed tijdelijk weg — stil doorgaan */ }
+    };
+    poll();
+    const t = setInterval(poll, 3000);
+    return () => { stop = true; clearInterval(t); };
+  }, []);
 
   const allDocs = useMemo(() => [...liveDocs, ...documents], [liveDocs]);
   const doc = useMemo(() => allDocs.find((d) => d.id === selectedId) || allDocs[0], [allDocs, selectedId]);
@@ -209,7 +234,7 @@ export default function Cockpit() {
                 <span className="tier-meta"><span className="tier-count">{liveDocs.length}</span></span>
               </h3>
               {liveDocs.map((d) => (
-                <button key={d.id} className={d.id === doc.id ? "on" : ""} onClick={() => setSelectedId(d.id)}>
+                <button key={d.runId || d.id} className={d.id === doc.id ? "on" : ""} onClick={() => setSelectedId(d.id)}>
                   <span className="qn">
                     <span className="name">{d.id.replace(" · LIVE", "")}</span>
                     <span className="live-chip">Live</span>

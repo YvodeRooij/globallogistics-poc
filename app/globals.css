@@ -406,6 +406,57 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
   background: var(--paper); max-height: 260px; overflow-y: auto;
 }
 
+/* ---------- live pipeline-pagina ---------- */
+.pipe-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) 420px; gap: 22px; align-items: start; margin: 0 0 56px; }
+@media (max-width: 1080px) { .pipe-grid { grid-template-columns: 1fr; } }
+.pipe-stage {
+  display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 14px 18px;
+  border-bottom: 1px solid var(--line-soft); position: relative;
+}
+.pipe-stage:last-child { border-bottom: 0; }
+.pipe-stage.pending { opacity: 0.5; }
+.pipe-stage.skip { opacity: 0.45; }
+.ps-marker {
+  width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font: 700 13px var(--font-mono); color: var(--soft); background: var(--wash);
+  border: 1.5px solid var(--line-strong);
+}
+.pipe-stage.start .ps-marker { border-color: var(--accent); background: var(--accent-wash); }
+.pipe-stage.done .ps-marker { color: #fff; background: var(--pass); border-color: var(--pass); font-size: 14px; }
+.pipe-stage.error .ps-marker { color: #fff; background: var(--fail); border-color: var(--fail); }
+.ps-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ps-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ps-head b { font-size: 14px; color: var(--ink); }
+.ps-who {
+  font: 700 9.5px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--soft); background: var(--wash); border: 1px solid var(--line);
+  border-radius: var(--r-full); padding: 1px 8px;
+}
+.ps-who.ai { color: var(--accent-text); background: var(--accent-wash); border-color: var(--accent-line); }
+.ps-who.mens { color: var(--ink); background: #eef1f6; border-color: var(--line-strong); }
+.ps-ms { font: 500 11px var(--font-mono); color: var(--faint); margin-left: auto; }
+.ps-sum { font-size: 12.5px; color: var(--soft); line-height: 1.5; overflow-wrap: anywhere; }
+.ps-req { font: 400 10px var(--font-mono); color: var(--faint); }
+
+.dropzone.tall { padding: 28px 18px; }
+.mail-status .pad { display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; line-height: 1.55; color: var(--soft); }
+.mail-status b { color: var(--ink); font-weight: 600; }
+.mail-status code { font-family: var(--font-mono); font-size: 11px; background: var(--wash); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+.ms-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); margin-top: 5px; }
+.ms-dot.on { background: var(--pass); box-shadow: 0 0 0 3px rgba(23, 114, 69, 0.15); animation: pulse 2s ease infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(23, 114, 69, 0.15); } 50% { box-shadow: 0 0 0 6px rgba(23, 114, 69, 0.06); } }
+.pipe-result .pr-row { font-size: 13px; color: var(--soft); margin-bottom: 4px; }
+.pipe-result .pr-row b { color: var(--ink); }
+.hist-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px; width: 100%;
+  text-align: left; padding: 10px 16px; border: 0; border-bottom: 1px solid var(--line-soft);
+  background: transparent; cursor: pointer; font: inherit;
+}
+.hist-row:last-child { border-bottom: 0; }
+.hist-row:hover { background: var(--wash); }
+.hr-name { font: 600 12.5px var(--font-ui); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-meta { flex: none; font: 500 11px var(--font-mono); color: var(--faint); }
+
 /* ---------- dashboard ---------- */
 .execs { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 24px; }
 @media (max-width: 900px) { .execs { grid-template-columns: 1fr; } }
@@ -473,6 +524,29 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
   .note-strip { grid-template-columns: 1fr; }
   .note-strip .kicker { border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 16px 0 0; margin-top: 16px; }
 }
+
+/* ---------- pilot-learnings ---------- */
+.learnings { margin-top: 36px; }
+.learnings-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.learnings-head h2 { font: 600 26px/1.2 var(--font-display); letter-spacing: -0.01em; color: var(--ink); margin-top: 6px; }
+.learnings-live { font-size: 12px; color: var(--soft); display: flex; align-items: center; gap: 8px; padding-bottom: 4px; }
+.learn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+@media (max-width: 1180px) { .learn-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 820px) { .learn-grid { grid-template-columns: 1fr; } }
+.learn-card {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm); padding: 18px;
+}
+.lc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lc-nr { font: 500 13px var(--font-display); color: var(--accent-text); }
+.lc-owner { font: 700 9.5px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); background: var(--wash); border: 1px solid var(--line); border-radius: var(--r-full); padding: 2px 9px; text-align: right; }
+.learn-card h3 { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.35; }
+.learn-card p { font-size: 12px; line-height: 1.55; color: var(--soft); flex: 1; }
+.lc-live { border-top: 1px solid var(--line-soft); padding-top: 10px; display: flex; flex-direction: column; gap: 2px; }
+.lc-val { font-size: 21px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.lc-lab { font-size: 10.5px; color: var(--faint); line-height: 1.4; }
+.learnings-kicker { font: italic 500 15px/1.5 var(--font-display); color: var(--soft); margin-top: 20px; max-width: 78ch; }
 
 /* tier-tooltip op het dashboard (pure CSS, server component) */
 .tip { position: relative; display: inline-flex; margin-left: 6px; vertical-align: 1px; }
