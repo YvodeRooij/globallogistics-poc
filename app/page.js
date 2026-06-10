@@ -25,10 +25,27 @@ const TIER_INFO = {
   },
 };
 
+const ROUTE_LABEL = {
+  auto_ok: "Auto-OK",
+  auto_ok_met_notitie: "Auto-OK met notitie",
+  review_vereist: "Review vereist",
+  escalatie_senior: "Escalatie senior",
+  escalatie_classificatie: "Escalatie classificatie",
+  duplicaat: "Duplicaat",
+};
+
 function docFileUrl(doc) {
   if (doc.fileUrl) return doc.fileUrl;
   if (doc.id.endsWith(".xlsx")) return null;
   return `/docs/${doc.id}.pdf`;
+}
+
+function sendFeedback(payload) {
+  fetch("/api/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
 }
 
 export default function Cockpit() {
@@ -37,9 +54,10 @@ export default function Cockpit() {
   const [hsAccepted, setHsAccepted] = useState({});
   const [openTier, setOpenTier] = useState(null);
   const [liveDocs, setLiveDocs] = useState([]);
-  const [busy, setBusy] = useState(null); // label van wat er live geanalyseerd wordt
+  const [busy, setBusy] = useState(null); // { label, stage? }
   const [liveError, setLiveError] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+  const [showMail, setShowMail] = useState(false);
   const fileInput = useRef(null);
 
   const allDocs = useMemo(() => [...liveDocs, ...documents], [liveDocs]);
@@ -63,20 +81,62 @@ export default function Cockpit() {
     return groups;
   }, []);
 
-  const approve = () => setDecisions((s) => ({ ...s, [doc.id]: "approved" }));
-  const submit = () => setDecisions((s) => ({ ...s, [doc.id]: "submitted" }));
-  const acceptHs = () => setHsAccepted((s) => ({ ...s, [doc.id]: true }));
+  const approve = () => {
+    setDecisions((s) => ({ ...s, [doc.id]: "approved" }));
+    sendFeedback({ docId: doc.id, action: "approved", hadCorrection: Boolean(doc.hs_suggestion) });
+  };
+  const submit = () => {
+    setDecisions((s) => ({ ...s, [doc.id]: "submitted" }));
+    sendFeedback({ docId: doc.id, action: "submitted" });
+  };
+  const acceptHs = () => {
+    setHsAccepted((s) => ({ ...s, [doc.id]: true }));
+    sendFeedback({
+      docId: doc.id,
+      action: "hs_confirmed",
+      hs: { ref: doc.ref, code: doc.hs_suggestion?.code, goederen: doc.extracted?.goods },
+    });
+  };
 
   async function runAnalysis(request, label, fileUrl) {
-    setBusy(label);
+    setBusy({ label });
     setLiveError(null);
     try {
-      const res = await fetch("/api/analyze", request);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Analyse mislukt (${res.status})`);
-      const liveDoc = { ...data, tier: null, fileUrl };
-      setLiveDocs((prev) => [liveDoc, ...prev.filter((d) => d.id !== liveDoc.id)]);
-      setSelectedId(liveDoc.id);
+      const res = await fetch("/api/pipeline", request);
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Analyse mislukt (${res.status})`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let lastError = null;
+      let gotResult = false;
+      const handleLine = (line) => {
+        if (!line.trim()) return;
+        let ev;
+        try { ev = JSON.parse(line); } catch { return; }
+        if (ev.type === "stage") setBusy({ label, stage: ev });
+        else if (ev.type === "result") {
+          gotResult = true;
+          const liveDoc = { ...ev.doc, tier: null, fileUrl };
+          setLiveDocs((prev) => [liveDoc, ...prev.filter((d) => d.id !== liveDoc.id)]);
+          setSelectedId(liveDoc.id);
+          setShowMail(false);
+        } else if (ev.type === "error") lastError = ev.error;
+      };
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let nl;
+        while ((nl = buf.indexOf("\n")) >= 0) {
+          handleLine(buf.slice(0, nl));
+          buf = buf.slice(nl + 1);
+        }
+      }
+      handleLine(buf);
+      if (lastError && !gotResult) throw new Error(lastError);
     } catch (err) {
       setLiveError(err.message);
     } finally {
@@ -95,16 +155,19 @@ export default function Cockpit() {
 
   function analyzeFile(file) {
     if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".pdf")) {
-      setLiveError("Alleen PDF wordt ondersteund in de live-analyse.");
+    const lower = file.name.toLowerCase();
+    if (!lower.endsWith(".pdf") && !lower.endsWith(".eml")) {
+      setLiveError("Alleen PDF of .eml wordt ondersteund in de live-analyse.");
       return;
     }
     const form = new FormData();
     form.append("file", file);
-    runAnalysis({ method: "POST", body: form }, file.name, URL.createObjectURL(file));
+    const fileUrl = lower.endsWith(".pdf") ? URL.createObjectURL(file) : null;
+    runAnalysis({ method: "POST", body: form }, file.name, fileUrl);
   }
 
   const fileUrl = docFileUrl(doc);
+  const busyStageText = busy?.stage ? `stage ${busy.stage.stage}/8 · ${busy.stage.name}` : "pipeline gestart…";
 
   return (
     <main className="page">
@@ -205,18 +268,18 @@ export default function Cockpit() {
             onDrop={(e) => { e.preventDefault(); setDragOver(false); if (!busy) analyzeFile(e.dataTransfer.files?.[0]); }}
           >
             {busy ? (
-              <><span className="spinner" /><strong style={{ display: "inline" }}>Live aan het analyseren…</strong>
-                <span className="dz-sub" style={{ display: "block" }}>{busy} · extractie + rekenregels</span></>
+              <><span className="spinner" /><strong style={{ display: "inline" }}>Pipeline draait…</strong>
+                <span className="dz-sub" style={{ display: "block" }}>{busyStageText}</span></>
             ) : (
               <><strong>Analyseer een document live</strong>
-                Sleep hier een PDF uit de datadump
-                <span className="dz-sub">of klik om te kiezen · extractie door Claude, validatie deterministisch</span></>
+                Sleep hier een PDF of .eml uit de datadump
+                <span className="dz-sub">of klik om te kiezen · 8 stages: code waar het kan, AI waar het moet</span></>
             )}
             {liveError && <span className="dz-error">{liveError}</span>}
             <input
               ref={fileInput}
               type="file"
-              accept="application/pdf"
+              accept="application/pdf,.eml"
               style={{ display: "none" }}
               onChange={(e) => { analyzeFile(e.target.files?.[0]); e.target.value = ""; }}
             />
@@ -253,7 +316,7 @@ export default function Cockpit() {
           <div className="card">
             <h3>
               <span>Geëxtraheerde kerngegevens</span>
-              {doc.live && <span className="counts"><b className="c-pass">live</b></span>}
+              {doc.live && doc.status && <span className="counts"><b className="route-badge">{ROUTE_LABEL[doc.status] || doc.status}</b></span>}
             </h3>
             <div className="fields">
               {displayFields(doc).map((f) => (
@@ -265,7 +328,7 @@ export default function Cockpit() {
             </div>
             {doc.live && (
               <div className="pad live-meta">
-                geëxtraheerd in {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s · {doc.model} · bevindingen deterministisch berekend
+                pipeline {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s · extractie {doc.model} · judges {doc.judge?.model || "—"} · risicoscore {doc.score}
               </div>
             )}
           </div>
@@ -307,7 +370,7 @@ export default function Cockpit() {
               <div className="pad">
                 <div className="hs-code">{doc.hs_suggestion.code}</div>
                 <div className="hs-confline">
-                  <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%</span>
+                  <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%{doc.hs_suggestion.challenged ? " · verlaagd na tegenspraak" : ""}</span>
                   <span className="hs-meter"><span style={{ width: `${Math.round(doc.hs_suggestion.confidence * 100)}%` }} /></span>
                 </div>
                 <p className="hs-reason">{doc.hs_suggestion.reasoning}</p>
@@ -323,6 +386,25 @@ export default function Cockpit() {
                   </button>
                   <button className="btn secondary" disabled={hsAccepted[doc.id]}>Andere code kiezen</button>
                 </div>
+                {hsAccepted[doc.id] && (
+                  <p className="micro">Bevestigde code is toegevoegd aan de precedentbibliotheek — het volgende Tulip-document herkent dit meteen.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {doc.live && Array.isArray(doc.trace) && (
+            <div className="card">
+              <h3><span>Pipeline-trace · 8 stages</span></h3>
+              <div className="trace-list">
+                {doc.trace.map((t, i) => (
+                  <div className={`trace-row ${t.status}`} key={i}>
+                    <span className="t-stage">{t.stage}</span>
+                    <span className="t-name">{t.name}</span>
+                    <span className="t-sum">{t.summary}{t.request_id ? <span className="t-req"> · {t.request_id}</span> : null}</span>
+                    <span className="t-ms">{t.ms != null ? `${(t.ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })}s` : ""}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -341,10 +423,25 @@ export default function Cockpit() {
                   <button className="btn" onClick={approve} disabled={needsHs}>
                     Goedkeuren na review
                   </button>
-                  <button className="btn secondary">Terug naar klant (auto-conceptmail)</button>
+                  <button
+                    className="btn secondary"
+                    onClick={() => doc.conceptMail && setShowMail((v) => !v)}
+                    disabled={doc.live && !doc.conceptMail}
+                  >
+                    Terug naar klant {doc.conceptMail ? "(conceptmail klaar)" : "(auto-conceptmail)"}
+                  </button>
                 </div>
               )}
               {needsHs && !decision && <p className="hint-hs">Bevestig eerst de HS-code hierboven.</p>}
+              {showMail && doc.conceptMail && (
+                <div className="mail-panel">
+                  <div className="mail-head">
+                    <span><b>Aan:</b> {doc.conceptMail.to}</span>
+                    <span><b>Onderwerp:</b> {doc.conceptMail.subject}</span>
+                  </div>
+                  <pre>{doc.conceptMail.body}</pre>
+                </div>
+              )}
               <p className="micro">
                 Elke correctie voedt de precedentbibliotheek en de golden set — het systeem wordt beter van fouten.
               </p>

@@ -27,17 +27,17 @@ function precedentLibrary() {
   return out;
 }
 
-/* Velden die niet op het document staan worden door het model WEGGELATEN
-   (geen null-unions: structured outputs staat max 16 union-velden toe).
-   De route normaliseert weggelaten velden daarna naar null. */
+/* Structured-output limieten (grammar-compilatie): geen unions, en max 24
+   optionele velden over de hele boom. Daarom een plat schema (23 optioneel):
+   afwezige velden worden weggelaten; normalize() vult ze aan met null en
+   leidt `goods` af uit de eerste regelomschrijving. */
 const LINE_SCHEMA = {
   type: "object",
   additionalProperties: false,
   required: [],
   properties: {
-    description: { type: "string" }, hs_code: { type: "string" }, qty: { type: "number" },
-    unit: { type: "string" }, unit_price: { type: "number" }, amount: { type: "number" },
-    net_kg: { type: "number" }, gross_kg: { type: "number" },
+    description: { type: "string" }, qty: { type: "number" }, unit_price: { type: "number" },
+    amount: { type: "number" }, net_kg: { type: "number" }, gross_kg: { type: "number" },
   },
 };
 
@@ -50,20 +50,17 @@ const EXTRACTION_SCHEMA = {
       type: "string",
       enum: ["commercial_invoice", "packing_list", "certificate_of_origin", "intake_email", "cmr_vrachtbrief", "order_lines_excel", "other"],
     },
-    language: { type: "string" },
     ref: { type: "string" },
     extracted: {
       type: "object",
       additionalProperties: false,
       required: [],
       properties: {
-        seller: { type: "string" }, buyer: { type: "string" }, invoice_no: { type: "string" },
-        date_raw: { type: "string" }, incoterms: { type: "string" }, currency: { type: "string" },
-        origin: { type: "string" }, total: { type: "number" }, hs_on_doc: { type: "string" },
-        goods: { type: "string" }, packages: { type: "number" }, gross_kg_header: { type: "number" },
-        net_kg_header: { type: "number" }, container: { type: "string" }, iban: { type: "string" },
-        bic: { type: "string" }, attachments_claimed: { type: "number" }, signed_by: { type: "string" },
-        from: { type: "string" },
+        seller: { type: "string" }, buyer: { type: "string" }, date_raw: { type: "string" },
+        incoterms: { type: "string" }, currency: { type: "string" }, origin: { type: "string" },
+        total: { type: "number" }, hs_on_doc: { type: "string" }, packages: { type: "number" },
+        gross_kg_header: { type: "number" }, net_kg_header: { type: "number" },
+        container: { type: "string" }, iban: { type: "string" }, bic: { type: "string" },
         lines: { type: "array", items: LINE_SCHEMA },
       },
     },
@@ -82,11 +79,14 @@ const EXTRACTION_SCHEMA = {
 };
 
 /* Sleutels die de UI en de validatie-engine verwachten — weggelaten = null. */
-const EXTRACT_KEYS = ["seller", "buyer", "invoice_no", "date_raw", "incoterms", "currency", "origin", "total", "hs_on_doc", "goods", "packages", "gross_kg_header", "net_kg_header", "container", "iban", "bic", "attachments_claimed", "signed_by", "from", "lines"];
+const EXTRACT_KEYS = ["seller", "buyer", "date_raw", "incoterms", "currency", "origin", "total", "hs_on_doc", "goods", "packages", "gross_kg_header", "net_kg_header", "container", "iban", "bic", "lines"];
 
 function normalize(parsed) {
   const extracted = {};
   for (const k of EXTRACT_KEYS) extracted[k] = parsed.extracted?.[k] ?? null;
+  if (extracted.goods == null && Array.isArray(extracted.lines) && extracted.lines[0]?.description) {
+    extracted.goods = extracted.lines[0].description;
+  }
   return {
     type_detected: parsed.type_detected,
     language: parsed.language ?? null,
@@ -99,7 +99,7 @@ function normalize(parsed) {
 const SYSTEM = `Je bent de extractielaag van een douane-aangiftesysteem. Je leest één brondocument (factuur, paklijst, oorsprongscertificaat, e-mail, CMR of orderregels) en geeft de velden exact terug zoals ze op het document staan.
 
 Regels:
-- Extraheer alléén wat er staat. Een veld dat niet op het document staat laat je volledig weg uit de JSON — verzin nooit een waarde.
+- Extraheer alléén wat er staat — verzin nooit een waarde. Verplichte velden die niet op het document staan: null. Optionele velden die er niet staan: weglaten.
 - Bedragen en gewichten als getal (normaliseer komma/punt-notatie), datums verbatim als string in date_raw.
 - type_detected bepaal je op INHOUD, nooit op de bestandsnaam.
 - ref is de zendingreferentie (patroon: twee letters + jaar + cijfers, bv. NL20256336) als die ergens op het document staat.
@@ -145,11 +145,19 @@ export async function POST(req) {
 
   let response;
   try {
+    /* Geforceerde tool-call i.p.v. structured output: het schema stuurt het
+       model, maar zonder server-side grammar-compilatie (die timet uit op
+       dit schema). De tool-input komt al geparsed binnen. */
     response = await client.messages.create({
       model: "claude-opus-4-8",
       max_tokens: 16000,
-      thinking: { type: "adaptive" },
-      output_config: { format: { type: "json_schema", schema: EXTRACTION_SCHEMA } },
+      output_config: { effort: "medium" },
+      tools: [{
+        name: "report_extraction",
+        description: "Rapporteer de volledige extractie van het douanedocument.",
+        input_schema: EXTRACTION_SCHEMA,
+      }],
+      tool_choice: { type: "tool", name: "report_extraction" },
       system: SYSTEM,
       messages: [
         {
@@ -174,15 +182,11 @@ export async function POST(req) {
     throw err;
   }
 
-  const text = response.content.find((b) => b.type === "text")?.text;
-  if (!text) return Response.json({ error: "Lege extractie-respons" }, { status: 502 });
-
-  let parsed;
-  try {
-    parsed = normalize(JSON.parse(text));
-  } catch {
-    return Response.json({ error: "Extractie-respons was geen geldige JSON" }, { status: 502 });
+  const toolUse = response.content.find((b) => b.type === "tool_use");
+  if (!toolUse?.input?.type_detected) {
+    return Response.json({ error: "Lege of onbruikbare extractie-respons" }, { status: 502 });
   }
+  const parsed = normalize(toolUse.input);
 
   const baseName = input.filename.replace(/\.pdf$/i, "");
   const findings = runChecks({

@@ -376,6 +376,36 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
 .micro { font-size: 12px; color: var(--faint); margin-top: 12px; line-height: 1.5; }
 .live-meta { font: 500 11px var(--font-mono); color: var(--faint); margin-top: 8px; }
 
+/* ---------- pipeline-trace & conceptmail ---------- */
+.route-badge { font-size: 10.5px; font-weight: 700; border-radius: var(--r-full); padding: 2px 9px; color: var(--ink); background: var(--wash); border: 1px solid var(--line); letter-spacing: 0.02em; }
+.trace-list { font-size: 12px; }
+.trace-row {
+  display: grid; grid-template-columns: 22px 158px 1fr auto; gap: 8px; align-items: baseline;
+  padding: 8px 16px; border-bottom: 1px solid var(--line-soft);
+}
+.trace-row:last-child { border-bottom: 0; }
+.trace-row .t-stage {
+  font: 700 10px var(--font-mono); color: var(--soft); background: var(--wash);
+  border: 1px solid var(--line); border-radius: 4px; text-align: center; padding: 1px 0;
+}
+.trace-row.error .t-stage { color: var(--fail); border-color: var(--fail); }
+.trace-row.skip { opacity: 0.55; }
+.trace-row .t-name { font-weight: 600; color: var(--ink); font-size: 12px; }
+.trace-row .t-sum { color: var(--soft); font-size: 11.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.trace-row .t-req { font-family: var(--font-mono); font-size: 10px; color: var(--faint); }
+.trace-row .t-ms { font: 500 11px var(--font-mono); color: var(--faint); white-space: nowrap; }
+
+.mail-panel { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
+.mail-head {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 14px;
+  background: var(--wash); border-bottom: 1px solid var(--line-soft); font-size: 12px; color: var(--soft);
+}
+.mail-head b { color: var(--ink); font-weight: 600; }
+.mail-panel pre {
+  padding: 12px 14px; font: 400 12px/1.6 var(--font-ui); white-space: pre-wrap; color: var(--body);
+  background: var(--paper); max-height: 260px; overflow-y: auto;
+}
+
 /* ---------- dashboard ---------- */
 .execs { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 24px; }
 @media (max-width: 900px) { .execs { grid-template-columns: 1fr; } }
