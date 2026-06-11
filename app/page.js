@@ -184,7 +184,13 @@ export default function Cockpit() {
       docId: doc.id,
       action: "hs_confirmed",
       hadCorrection: Boolean(hsOverride[doc.id]),
-      hs: { ref: doc.ref, code: hsOverride[doc.id] || doc.hs_suggestion?.code, goederen: doc.extracted?.goods },
+      hs: {
+        ref: doc.ref,
+        code: hsOverride[doc.id] || doc.hs_suggestion?.code,
+        voorstel: doc.hs_suggestion?.code || null,
+        overruled: Boolean(hsOverride[doc.id]),
+        goederen: doc.extracted?.goods,
+      },
     });
   };
 

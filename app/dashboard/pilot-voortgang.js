@@ -64,77 +64,79 @@ export default function PilotVoortgang({ baseline }) {
   const HANDWERK_MIN = 45; // handwerk per dossier — Jordan [29:03]: "from forty-five minutes ... to fifteen minutes"
   const errBase = baseline.y2025.error_pct;
   const fact = baseline.facturatie; // Barts eigen werkboek: geschreven uren, fee, boetes — alles EUR
-  const boeteTop = fact?.boetes?.redenen?.slice(0, 2) || [];
 
   const liveE2e = stats?.avg_e2e_ms ? stats.avg_e2e_ms / 60000 : null;
   const liveKosten = stats?.avg_cost_usd ?? null;
   const liveRubber = stats?.rubber_stamp_ratio;
 
+  const kostVan = fact ? (fact.min_per_aangifte / 60) * (fact.omzet / fact.uren) : 45;
+  const kostDoel = fact ? (15 / 60) * (fact.omzet / fact.uren) : 15;
+  const exposure = fact ? ((fact.min_per_aangifte - 15) / 60) * fact.aangiftes * (fact.omzet / fact.uren) : null;
+  const daling = (van, doel) => `− ${nl((1 - doel / van) * 100)}%`;
+
+  /* Eén balk per eigenaar, één gemeten live-regel, en álle bronnen en
+     details één hover weg achter de ⓘ — feiten blijven, ruis verdwijnt. */
   const panels = [
     {
       initials: "AR", role: "CEO", epithet: "De sponsor", name: "Alex Reijnders",
-      focus: "Betrouwbaarheid & compliance — geen beloftes die we niet waarmaken.",
-      metric: `Foutpercentage op aangiftes · doel < 1% (pilotcriterium, Jordan [29:37]) · basis: DUANE 4-deelset, ${nl(baseline.n)} aangiftes`,
+      focus: "Stuurt op betrouwbaarheid en compliance.",
+      metric: "Foutpercentage op aangiftes",
+      delta: daling(errBase, 1),
       van: errBase, doel: 1, fmt: (v) => `${nl(v, 1)}%`,
-      stats: [
-        { v: "80/20 → 20/80", l: `de noordster: van 80% typewerk naar 80% advieswerk — Alex [01:14]: "I want to flip it. Twenty, eighty. That's the whole north star" (+ casebrief Exhibit 2)`, soort: "interview" },
-        fact
-          ? { v: k(fact.boetes.verwijtbaar), l: `verwijtbare douaneboetes 2024, van ${k(fact.boetes.totaal)} totaal (facturatie-werkboek) — Henks "drie ton"`, soort: "berekend" }
-          : { v: "—", l: "boetes: facturatie-werkboek niet gevonden", soort: "berekend" },
-        { v: "0", l: `HS-codes zonder menselijke handtekening in deze PoC — Alex' randvoorwaarde "accuracy and auditability are non-negotiable" [06:37]; kill-criterium: ROI binnen 12 maanden [08:11]`, soort: "gemeten" },
-      ],
+      live: { v: "0", l: "HS-codes zonder menselijke handtekening in deze PoC" },
+      bronnen: [
+        `Doel < 1% is het pilotcriterium — Jordan [29:37]; basis nulmeting: DUANE 4-deelset, ${nl(baseline.n)} aangiftes (3,8% in 2024 → ${nl(errBase, 1)}% in 2025, stijgend).`,
+        `De noordster: van 80% typewerk naar 80% advieswerk — Alex [01:14]: "I want to flip it. Twenty, eighty." (+ casebrief Exhibit 2).`,
+        fact ? `Verwijtbare douaneboetes 2024: ${k(fact.boetes.verwijtbaar)} van ${k(fact.boetes.totaal)} totaal (berekend uit het facturatie-werkboek) — Henks "drie ton".` : null,
+        `Kill-criterium Alex: ROI binnen 12 maanden [08:11]; "accuracy and auditability are non-negotiable" [06:37].`,
+      ].filter(Boolean),
     },
     {
       initials: "JS", role: "COO", epithet: "De kampioen", name: "Jordan Smit",
-      focus: `Zijn drie pilotcriteria [29:37]: tijd, fouten (zie CEO-paneel) en adoptie (zie CHRO-paneel) — "the adoption number is as real to me as the time number".`,
-      metric: `Handwerk per dossier · doel 15 min — Jordan [29:37]: "I want to see forty-five down toward fifteen, that's the headline" · balk vult met gemeten vloer-minuten, niet met demo-tijd`,
+      focus: "Stuurt op handwerk per dossier en adoptie op de vloer.",
+      metric: "Handwerk per dossier",
+      delta: daling(HANDWERK_MIN, 15),
       van: HANDWERK_MIN, doel: 15, fmt: (v) => `${nl(v)} min`,
-      stats: [
-        fact
-          ? { v: `${nl(fact.min_per_aangifte, 1)} min`, l: `geschreven tijd per aangifte uit de facturatie (${nl(fact.uren)} uur / ${nl(fact.aangiftes)} aangiftes) — bevestigt de 45 onafhankelijk`, soort: "berekend" }
-          : { v: "—", l: "facturatie-werkboek niet gevonden", soort: "berekend" },
-        { v: "45 min → ½ dag", l: `variantie per dossier: clean versus Shenzhen BrightTech (Henk) — "the variance is brutal"; de pilot draait juist op de messy flow`, soort: "interview" },
-        liveE2e
-          ? { v: `${nl(liveE2e, 1)} min`, l: "intake → besluit in de PoC — systeemtijd, géén handwerk van de vloer; eerlijke referentie is de 114 min systeemdoorlooptijd in DUANE 4", soort: "gemeten" }
-          : { v: "—", l: "PoC-systeemtijd verschijnt na de eerste goedgekeurde live run", soort: "gemeten" },
-      ],
+      live: liveE2e
+        ? { v: `${nl(liveE2e, 1)} min`, l: "intake → besluit in deze PoC (systeemtijd, geen vloer-handwerk)" }
+        : { v: "—", l: "PoC-systeemtijd verschijnt na de eerste goedgekeurde live run" },
+      bronnen: [
+        `Doel — Jordan [29:37]: "I want to see forty-five down toward fifteen, that's the headline." De balk vult met gemeten vloer-minuten, niet met demo-tijd.`,
+        fact ? `Onafhankelijke bevestiging: facturatie meet ${nl(fact.min_per_aangifte, 1)} min geschreven tijd per aangifte (${nl(fact.uren)} uur / ${nl(fact.aangiftes)} aangiftes, berekend).` : null,
+        `Variantie: clean dossier 45 min, Shenzhen BrightTech een halve dag (Henk) — "the variance is brutal"; de pilot draait juist op de messy flow.`,
+        `Jordans derde criterium is adoptie — "as real to me as the time number" — zie het CHRO-paneel.`,
+      ].filter(Boolean),
     },
     {
       initials: "BC", role: "CFO", epithet: "De realist", name: "Bart Coppens",
-      focus: `"Cost-to-serve per declaration... everything else is vanity next to it" [16:50] — zijn ene metric, hier als tijdwaarde tot hij loonkosten aanlevert.`,
-      metric: `Cost-to-serve per aangifte (proxy: tijdwaarde op het uurmodel) · doel op Jordans 15 min — Bart mikt zelf op 10 [17:22]`,
-      van: fact ? (fact.min_per_aangifte / 60) * (fact.omzet / fact.uren) : 45,
-      doel: fact ? (15 / 60) * (fact.omzet / fact.uren) : 15,
-      fmt: (v) => `€${nl(v, 2)}`,
-      stats: [
-        fact
-          ? (() => {
-              const tarief = fact.omzet / fact.uren; // effectief gefactureerd uurtarief (werkboek-deelset; audited blended fee is €78 [00:24])
-              const exposure = ((fact.min_per_aangifte - 15) / 60) * fact.aangiftes * tarief;
-              return {
-                v: `€${nl(exposure / 1e6, 1)} mln`,
-                l: `omzet-exposure bij het 15-min-doel op het uurmodel — daarom wil Bart prijs van uren loskoppelen: "price the outcome, not the time it took" [06:40]`,
-                soort: "berekend",
-              };
-            })()
-          : { v: "—", l: "facturatie-werkboek niet gevonden", soort: "berekend" },
-        { v: "18–24 mnd", l: `payback-grens, kill-criterium — Bart [07:40]: "Six years, not interested... Under eighteen, twenty-four months, now we're talking"; uitstap ontwerpen ("kill it cheaply" [20:04])`, soort: "interview" },
-        liveKosten != null
-          ? { v: `$${liveKosten.toFixed(2)}`, l: "marginale AI-kost per document, live gemeten — zelfs ×10 blijft dit ~1% van de fee per aangifte: de variabele kost stort in", soort: "gemeten" }
-          : { v: "—", l: "AI-kosten verschijnen na de eerste live run", soort: "gemeten" },
-      ],
+      focus: "Stuurt op cost-to-serve per aangifte — structureel omlaag.",
+      metric: "Cost-to-serve per aangifte (proxy)",
+      delta: daling(kostVan, kostDoel),
+      van: kostVan, doel: kostDoel, fmt: (v) => `€${nl(v, 2)}`,
+      live: liveKosten != null
+        ? { v: `$${liveKosten.toFixed(2)}`, l: "marginale AI-kost per document, live gemeten in deze PoC" }
+        : { v: "—", l: "AI-kosten verschijnen na de eerste live run" },
+      bronnen: [
+        `Barts ene metric — [16:50]: "Cost-to-serve per declaration... everything else is vanity next to it."`,
+        `Proxy: tijdwaarde op het uurmodel (minuten × effectief tarief uit zijn werkboek); echte €/aangifte volgt zodra Bart loonkosten aanlevert. Doel op Jordans 15 min — Bart mikt zelf op 10 [17:22].`,
+        exposure != null ? `De downside: €${nl(exposure / 1e6, 1)} mln omzet-exposure bij het 15-min-doel op het uurmodel — daarom het pricingbesluit: "price the outcome, not the time it took" [06:40].` : null,
+        `Kill-criterium: payback onder 18–24 maanden [07:40]; uitstap vooraf ontwerpen — "kill it cheaply" [20:04].`,
+      ].filter(Boolean),
     },
     {
       initials: "ML", role: "CHRO", epithet: "De beschermer", name: "Morgan de Laet",
-      focus: "Adoptiegraad — gebruiken declaranten het vrijwillig, en doet een senior als Henk mee?",
-      metric: "Vrijwillige adoptie onder declaranten · doel 75% = óns voorstel (Morgan documenteerde geen getal) · vast te stellen mét HR en OR · groepsniveau, nooit per individu",
+      focus: "Stuurt op vrijwillige adoptie en kennisborging.",
+      metric: "Vrijwillige adoptie onder declaranten",
+      delta: "doel 75% · voorstel",
       van: 0, doel: 75, fmt: (v) => `${nl(v)}%`,
-      stats: [
-        { v: "47 · 14 mnd", l: `senioren met pensioen ≤ 3 jaar (Morgan [02:40]) en Henks eigen klok ([11:04]: "Fourteen months. Not that I'm counting") — Morgans echte scorecard [14:18]: sleutelmensen behouden, rol aantrekkelijk voor <30, welzijn, OR "zonder oorlog"`, soort: "interview" },
-        { v: "25 in / 36 uit", l: "verloop 2023 (HR-export, 86 medewerkers — scope door HR te verifiëren): instroom houdt uitstroom niet bij; reskilling is de enige route", soort: "berekend" },
-        liveRubber != null
-          ? { v: `${nl(liveRubber * 100)}%`, l: liveRubber === 1 ? "goedgekeurd zonder correctie — bij structureel 100% blind aftekenen: rode vlag" : "goedgekeurd zonder correctie (gezond: de vloer corrigeert en stuurt het systeem)", soort: "gemeten" }
-          : { v: "—", l: "rubber-stamp-check verschijnt na de eerste besluiten", soort: "gemeten" },
+      live: liveRubber != null
+        ? { v: `${nl(liveRubber * 100)}%`, l: liveRubber === 1 ? "goedgekeurd zonder correctie — structureel 100% is een rode vlag" : "goedgekeurd zonder correctie — gezond: de vloer corrigeert" }
+        : { v: "—", l: "rubber-stamp-check verschijnt na de eerste besluiten" },
+      bronnen: [
+        `Het 75%-doel is óns voorstel — Morgan documenteerde geen numerieke adoptie-KPI; vast te stellen mét HR en OR, gemeten op groepsniveau, nooit per individu.`,
+        `Morgans echte scorecard [14:18]: sleutelmensen behouden, de rol aantrekkelijk voor dertigers-min, welzijn, OR-trajecten "zonder oorlog".`,
+        `Waarom dit urgent is: 47 senioren met pensioen binnen 3 jaar [02:40]; Henk zelf [11:04]: "Fourteen months. Not that I'm counting."`,
+        `Verloop 2023: 25 in / 36 uit (HR-export) — instroom houdt uitstroom niet bij; reskilling is de enige route.`,
       ],
     },
   ];
@@ -168,16 +170,22 @@ export default function PilotVoortgang({ baseline }) {
               </div>
             </header>
             <p className="prog-focus">{p.focus}</p>
-            <div className="vn-metric">{p.metric}</div>
-            <VanNaar van={p.van} doel={p.doel} fmt={p.fmt} live={p.live} />
-            <div className="prog-stats">
-              {p.stats.map((s, i) => (
-                <div className="prog-stat" key={i}>
-                  <div className="ps-v">{s.v} <Tag soort={s.soort}>{s.soort}</Tag></div>
-                  <div className="ps-l">{s.l}</div>
-                </div>
-              ))}
+            <div className="metric-row">
+              <span className="vn-metric">{p.metric}</span>
+              <span className="delta-chip">{p.delta}</span>
+              <span className="tip">
+                <button type="button" className="tip-btn" aria-label={`Bronnen en details bij ${p.metric}`}>i</button>
+                <span className="tip-pop" role="note">
+                  {p.bronnen.map((b, i) => <p key={i}>{b}</p>)}
+                </span>
+              </span>
             </div>
+            <VanNaar van={p.van} doel={p.doel} fmt={p.fmt} />
+            <p className="prog-live">
+              <Tag soort="gemeten">◆ gemeten</Tag>
+              <b>{p.live.v}</b>
+              <span>{p.live.l}</span>
+            </p>
           </article>
         ))}
       </div>

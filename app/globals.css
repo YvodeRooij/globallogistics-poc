@@ -654,10 +654,19 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
 .sp-baseline { fill: var(--ink); }
 .sp-live { fill: var(--accent); }
 .sp-as { font: 500 9px var(--font-ui); fill: var(--faint); }
-.prog-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-top: 1px solid var(--line-soft); padding-top: 12px; }
-@media (max-width: 560px) { .prog-stats { grid-template-columns: 1fr; } }
-.prog-stat .ps-v { font-size: 16px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.prog-stat .ps-l { font-size: 10.5px; line-height: 1.45; color: var(--faint); margin-top: 3px; }
+.metric-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.metric-row .vn-metric { margin-top: 0; flex: 1; min-width: 0; }
+.delta-chip {
+  flex: none; font: 700 10.5px var(--font-ui); letter-spacing: 0.05em;
+  color: var(--pass); background: var(--pass-bg); border: 1px solid rgba(23, 114, 69, 0.3);
+  border-radius: var(--r-full); padding: 2px 10px; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.prog-live {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  font-size: 12px; line-height: 1.5; color: var(--soft);
+  border-top: 1px solid var(--line-soft); padding-top: 12px; margin-top: 4px;
+}
+.prog-live b { color: var(--ink); font-size: 15px; font-variant-numeric: tabular-nums; }
 
 /* ---------- pilot-learnings ---------- */
 .learnings { margin-top: 36px; }
