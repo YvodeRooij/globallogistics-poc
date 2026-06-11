@@ -10,6 +10,7 @@ import {
   displayFields,
 } from "../lib/data";
 import StageRail, { emptyStages, applyStageEvent } from "./stage-rail";
+import OpeningScreen from "./opening";
 
 /* Tiers = documentkwaliteit bij binnenkomst. De tier bepaalt hoeveel het
    systeem zelf kan en hoe kritisch ú moet kijken. */
@@ -326,6 +327,7 @@ export default function Cockpit() {
 
   return (
     <main id="main" className="page">
+      <OpeningScreen />
       <div className="eyebrow">GlobalLogistics · van intake tot aangifte</div>
       <h1 className="title">Aangiftecockpit</h1>
       <div className="accent-bar" />
