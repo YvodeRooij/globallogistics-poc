@@ -74,59 +74,66 @@ export default function PilotVoortgang({ baseline }) {
     {
       initials: "AR", role: "CEO", epithet: "De sponsor", name: "Alex Reijnders",
       focus: "Betrouwbaarheid & compliance — geen beloftes die we niet waarmaken.",
-      metric: "Foutpercentage op aangiftes (Jordans doel: onder 1%)",
+      metric: `Foutpercentage op aangiftes · doel < 1% (pilotcriterium) · basis: DUANE 4-deelset, ${nl(baseline.n)} aangiftes`,
       van: errBase, doel: 1, fmt: (v) => `${nl(v, 1)}%`,
       stats: [
-        { v: `${nl(baseline.y2024.error_pct, 1)}% → ${nl(errBase, 1)}%`, l: "foutpercentage 2024 → 2025: stijgend zonder ingrijpen (DUANE 4-export)", soort: "berekend" },
+        { v: `${nl(baseline.y2024.error_pct, 1)}% → ${nl(errBase, 1)}%`, l: "fouttrend 2024 → 2025: stijgend zonder ingrijpen (DUANE 4-export)", soort: "berekend" },
         fact
-          ? { v: k(fact.boetes.verwijtbaar), l: `verwijtbare douaneboetes 2024 (van ${k(fact.boetes.totaal)} totaal) — Henks "drie ton" klopt`, soort: "berekend" }
+          ? { v: k(fact.boetes.verwijtbaar), l: `verwijtbare douaneboetes 2024, van ${k(fact.boetes.totaal)} totaal (facturatie-werkboek) — Henks "drie ton"`, soort: "berekend" }
           : { v: "—", l: "boetes: facturatie-werkboek niet gevonden", soort: "berekend" },
-        { v: "0", l: "HS-codes ingediend zonder handtekening in deze PoC", soort: "gemeten" },
+        { v: "0", l: "HS-codes ingediend zonder menselijke handtekening in deze PoC — naast de rubber-stamp-check, anders is het veiligheidstheater", soort: "gemeten" },
       ],
     },
     {
       initials: "JS", role: "COO", epithet: "De kampioen", name: "Jordan Smit",
       focus: "Handwerk per dossier en first-time-right — verdwijnt het werk echt?",
-      metric: "Handwerk per dossier (Jordans 45 → 15)",
+      metric: "Handwerk per dossier · doel 15 min (pilotcriterium, Jordan [29:03]) · balk vult met gemeten vloer-minuten, niet met demo-tijd",
       van: HANDWERK_MIN, doel: 15, fmt: (v) => `${nl(v)} min`,
-      live: liveE2e,
       stats: [
-        { v: `${nl(HANDWERK_MIN)} min`, l: `handwerk per dossier — Jordan [29:03]: "from forty-five minutes ... to fifteen minutes"`, soort: "interview" },
         fact
           ? { v: `${nl(fact.min_per_aangifte, 1)} min`, l: `geschreven tijd per aangifte uit de facturatie (${nl(fact.uren)} uur / ${nl(fact.aangiftes)} aangiftes) — bevestigt de 45 onafhankelijk`, soort: "berekend" }
           : { v: "—", l: "facturatie-werkboek niet gevonden", soort: "berekend" },
+        { v: "45 min → ½ dag", l: `variantie per dossier: clean versus Shenzhen BrightTech (Henk) — "the variance is brutal"; de pilot draait juist op de messy flow`, soort: "interview" },
         liveE2e
-          ? { v: `${nl(liveE2e, 1)} min`, l: "intake → besluit, gemeten in deze PoC-sessie", soort: "gemeten" }
-          : { v: "—", l: "PoC-meting verschijnt na de eerste goedgekeurde live run", soort: "gemeten" },
+          ? { v: `${nl(liveE2e, 1)} min`, l: "intake → besluit in de PoC — systeemtijd, géén handwerk van de vloer; eerlijke referentie is de 114 min systeemdoorlooptijd in DUANE 4", soort: "gemeten" }
+          : { v: "—", l: "PoC-systeemtijd verschijnt na de eerste goedgekeurde live run", soort: "gemeten" },
       ],
     },
     {
       initials: "BC", role: "CFO", epithet: "De realist", name: "Bart Coppens",
-      focus: "Geschreven tijd, fee per aangifte en boetes — alles uit zijn eigen facturatie-werkboek (EUR).",
-      metric: "Geschreven tijd per aangifte (facturatie 2024)",
+      focus: "Cost-to-serve-proxy, de uurtje-factuurtje-downside en de marginale AI-kost — met het pricingbesluit op tafel.",
+      metric: "Geschreven tijd per aangifte (proxy voor cost-to-serve) · echte €/aangifte volgt zodra Bart loonkosten aanlevert",
       van: fact ? fact.min_per_aangifte : HANDWERK_MIN, doel: 15, fmt: (v) => `${nl(v, 1)} min`,
       stats: [
         fact
-          ? { v: `€${nl(fact.fee_per_aangifte, 2)}`, l: `gemiddelde fee per aangifte (€${nl(fact.omzet / 1e6, 1)} mln omzet / ${nl(fact.aangiftes)} aangiftes)`, soort: "berekend" }
+          ? (() => {
+              const tarief = fact.omzet / fact.uren; // effectief gefactureerd uurtarief
+              const exposure = ((fact.min_per_aangifte - 15) / 60) * fact.aangiftes * tarief;
+              return {
+                v: `€${nl(exposure / 1e6, 1)} mln`,
+                l: `omzet-exposure bij het 15-min-doel op het uurmodel (${nl(fact.min_per_aangifte - 15)} min minder × ${nl(fact.aangiftes)} aangiftes × €${nl(tarief, 0)}/u effectief) → beslispunt stuurgroep: fee per aangifte i.p.v. per uur`,
+                soort: "berekend",
+              };
+            })()
           : { v: "—", l: "facturatie-werkboek niet gevonden", soort: "berekend" },
         fact
-          ? { v: k(fact.boetes.totaal), l: `douaneboetes 2024 — top: ${boeteTop.map((r) => `${r.reden} ${k(r.bedrag)}`).join(" · ")}; dedupe en dossier-checks raken dit direct`, soort: "berekend" }
+          ? { v: k(fact.boetes.verwijtbaar), l: `verwijtbare boetes 2024 — de addressable bovengrens van foutreductie; top: ${boeteTop.map((r) => `${r.reden} ${k(r.bedrag)}`).join(" · ")}`, soort: "berekend" }
           : { v: "—", l: "boetes niet gevonden", soort: "berekend" },
         liveKosten != null
-          ? { v: `$${liveKosten.toFixed(2)}`, l: "AI-kosten per document, gemeten in deze PoC — de nieuwe kostencomponent", soort: "gemeten" }
+          ? { v: `$${liveKosten.toFixed(2)}`, l: "marginale AI-kost per document, live gemeten — zelfs ×10 blijft dit ~1% van de fee per aangifte: de variabele kost stort in", soort: "gemeten" }
           : { v: "—", l: "AI-kosten verschijnen na de eerste live run", soort: "gemeten" },
       ],
     },
     {
       initials: "ML", role: "CHRO", epithet: "De beschermer", name: "Morgan de Laet",
       focus: "Adoptiegraad — gebruiken declaranten het vrijwillig, en doet een senior als Henk mee?",
-      metric: "Adoptiegraad onder declaranten (doel = voorstel)",
+      metric: "Vrijwillige adoptie onder declaranten · doel 75% = voorstel, vast te stellen mét HR en OR · gemeten op groepsniveau, nooit per individu",
       van: 0, doel: 75, fmt: (v) => `${nl(v)}%`,
       stats: [
-        { v: "75%", l: "voorstel-doel: aandeel declaranten dat vrijwillig via de cockpit werkt — vóór de pilot vast te stellen mét Morgan", soort: "doel" },
-        { v: "25 in / 36 uit", l: "personeelsverloop 2023 (HR-export, 'krappe arbeidsmarkt') — waarom kennisborging urgent is", soort: "berekend" },
+        { v: "47", l: "senior-declaranten met pensioen binnen 3 jaar (interview [02:40], door Morgan geverifieerd) — waarom kennisborging nú moet, zonder gedwongen ontslagen", soort: "interview" },
+        { v: "25 in / 36 uit", l: "verloop 2023 (HR-export, 86 medewerkers — scope door HR te verifiëren): instroom houdt uitstroom niet bij; reskilling is de enige route", soort: "berekend" },
         liveRubber != null
-          ? { v: `${nl(liveRubber * 100)}%`, l: liveRubber === 1 ? "goedgekeurd zonder correctie — bij structureel 100% een rode vlag" : "goedgekeurd zonder correctie (gezond: er wordt gecorrigeerd)", soort: "gemeten" }
+          ? { v: `${nl(liveRubber * 100)}%`, l: liveRubber === 1 ? "goedgekeurd zonder correctie — bij structureel 100% blind aftekenen: rode vlag" : "goedgekeurd zonder correctie (gezond: de vloer corrigeert en stuurt het systeem)", soort: "gemeten" }
           : { v: "—", l: "rubber-stamp-check verschijnt na de eerste besluiten", soort: "gemeten" },
       ],
     },
