@@ -416,7 +416,19 @@ export default function OpeningScreen() {
   const dichtRef = useRef(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY)) { setZichtbaar(false); return; }
+    /* Harde refresh (Ctrl+Shift+R) speelt opnieuw af; gewone reload en
+       navigatie niet. Detectie: bij een harde refresh komen de immutable
+       /_next/static-assets opnieuw over het netwerk (transferSize > 0),
+       bij een zachte reload komen ze uit de browsercache. */
+    let hardeRefresh = false;
+    try {
+      const nav = performance.getEntriesByType("navigation")[0];
+      if (nav?.type === "reload") {
+        const statisch = performance.getEntriesByType("resource").filter((r) => r.name.includes("/_next/static/"));
+        hardeRefresh = statisch.length > 0 && statisch.some((r) => r.transferSize > 0 && r.deliveryType !== "cache");
+      }
+    } catch { /* oude browser — val terug op sessiegedrag */ }
+    if (sessionStorage.getItem(SESSION_KEY) && !hardeRefresh) { setZichtbaar(false); return; }
     const sluit = () => {
       if (dichtRef.current) return;
       dichtRef.current = true;
