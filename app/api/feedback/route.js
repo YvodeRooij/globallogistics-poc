@@ -19,6 +19,7 @@ export async function POST(req) {
       // bij een overrule slaan we óók het afgewezen voorstel op: dat is de
       // waardevolste feedback — volgende analyses krijgen de correctie mee
       afgewezen: body.hs.overruled ? body.hs.voorstel || null : null,
+      reden: body.hs.reden || null,
     });
   }
   addDecision({

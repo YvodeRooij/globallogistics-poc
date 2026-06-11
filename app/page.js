@@ -91,6 +91,7 @@ export default function Cockpit() {
   const [editPrefill, setEditPrefill] = useState(null);   // voorgestelde waarde (bv. uit dossier-verrijking)
   const [resolvedFindings, setResolvedFindings] = useState({}); // docId -> { index -> true }
   const [hsOverride, setHsOverride] = useState({});      // docId -> handmatig gekozen HS-code
+  const [hsReden, setHsReden] = useState({});             // docId -> waarom het voorstel niet klopte (senior-feedback)
   const [hsEditing, setHsEditing] = useState(false);
   const fileInput = useRef(null);
   const runActive = useRef(false); // geen toast voor runs die we zelf gestart hebben
@@ -190,6 +191,7 @@ export default function Cockpit() {
         code: hsOverride[doc.id] || doc.hs_suggestion?.code,
         voorstel: doc.hs_suggestion?.code || null,
         overruled: Boolean(hsOverride[doc.id]),
+        reden: hsReden[doc.id] || null,
         goederen: doc.extracted?.goods,
       },
     });
@@ -657,28 +659,38 @@ export default function Cockpit() {
                 </h3>
                 <div className="pad">
                   {hsEditing ? (
-                    <input
-                      className="fv-input hs-input"
-                      autoFocus
-                      name="hs-code"
-                      aria-label="Kies een andere HS-code"
-                      autoComplete="off"
-                      spellCheck={false}
-                      defaultValue={hsOverride[doc.id] || doc.hs_suggestion.code}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                    <div className="hs-editwrap">
+                      <input
+                        className="fv-input hs-input"
+                        autoFocus
+                        name="hs-code"
+                        aria-label="Kies een andere HS-code"
+                        autoComplete="off"
+                        spellCheck={false}
+                        defaultValue={hsOverride[doc.id] || doc.hs_suggestion.code}
+                        onKeyDown={(e) => { if (e.key === "Escape") setHsEditing(false); }}
+                        onBlur={(e) => {
                           const v = e.currentTarget.value.trim();
                           if (v && v !== doc.hs_suggestion.code) setHsOverride((s) => ({ ...s, [doc.id]: v }));
-                          setHsEditing(false);
-                        }
-                        if (e.key === "Escape") setHsEditing(false);
-                      }}
-                      onBlur={(e) => {
-                        const v = e.currentTarget.value.trim();
-                        if (v && v !== doc.hs_suggestion.code) setHsOverride((s) => ({ ...s, [doc.id]: v }));
-                        setHsEditing(false);
-                      }}
-                    />
+                        }}
+                      />
+                      <input
+                        className="fv-input hs-redeninput"
+                        name="hs-reden"
+                        aria-label="Waarom klopt het voorstel niet?"
+                        autoComplete="off"
+                        placeholder="Waarom klopt het voorstel niet? Bijv. 'dit is bronwater, geen frisdrank'…"
+                        defaultValue={hsReden[doc.id] || ""}
+                        onKeyDown={(e) => { if (e.key === "Escape") setHsEditing(false); }}
+                        onBlur={(e) => {
+                          const v = e.currentTarget.value.trim();
+                          setHsReden((s) => ({ ...s, [doc.id]: v }));
+                        }}
+                      />
+                      <button type="button" className="mini-btn accent" onClick={() => setHsEditing(false)}>
+                        Correctie vastzetten
+                      </button>
+                    </div>
                   ) : (
                     <div className="hs-code">{hsOverride[doc.id] || doc.hs_suggestion.code}</div>
                   )}
@@ -703,12 +715,13 @@ export default function Cockpit() {
                     ))}
                   </ul>
                   <div className="hs-note">De declarant tekent, niet het model</div>
-                  <div className="actions" style={{ marginTop: 14 }}>
+                  <div className="hs-fb-label">Feedback declarant — uw correctie traint het systeem</div>
+                  <div className="actions" style={{ marginTop: 10 }}>
                     <button type="button" className="btn accent" onClick={acceptHs} disabled={hsAccepted[doc.id]}>
                       {hsAccepted[doc.id] ? "Code bevestigd ✓" : hsOverride[doc.id] ? "Gekozen code bevestigen" : "Code bevestigen"}
                     </button>
                     <button type="button" className="btn secondary" onClick={() => setHsEditing(true)} disabled={hsAccepted[doc.id]}>
-                      Andere code kiezen
+                      Voorstel afkeuren · andere code
                     </button>
                   </div>
                   {hsAccepted[doc.id] ? (
