@@ -75,6 +75,7 @@ function sendFeedback(payload) {
 export default function Cockpit() {
   const [selectedId, setSelectedId] = useState(documents[0].id);
   const [decisions, setDecisions] = useState({});
+  const [decisionAt, setDecisionAt] = useState({}); // docId -> tijdstip eerste besluit (voor e2e-meting)
   const [hsAccepted, setHsAccepted] = useState({});
   const [openTier, setOpenTier] = useState(null);
   const [liveDocs, setLiveDocs] = useState([]);
@@ -163,6 +164,7 @@ export default function Cockpit() {
 
   const approve = () => {
     setDecisions((s) => ({ ...s, [doc.id]: "approved" }));
+    setDecisionAt((s) => (s[doc.id] ? s : { ...s, [doc.id]: Date.now() }));
     sendFeedback({ docId: doc.id, action: "approved", hadCorrection: hasCorrection(doc.id) });
   };
   const submit = () => {
@@ -311,7 +313,7 @@ export default function Cockpit() {
   const stageLabel = currentStage ? `stage ${currentStage.n}/8 · ${currentStage.name}` : "pipeline gestart…";
 
   return (
-    <main className="page">
+    <main id="main" className="page">
       <div className="eyebrow">GlobalLogistics · van intake tot aangifte</div>
       <h1 className="title">Aangiftecockpit</h1>
       <div className="accent-bar" />
@@ -346,9 +348,9 @@ export default function Cockpit() {
           {liveRun && (
             <div className="queue">
               <h3><span>Wordt verwerkt</span><span className="tier-meta"><span className="tier-count">1</span></span></h3>
-              <button className={`ghost ${railFocus ? "on" : ""}`} onClick={() => setLiveRun((r) => (r ? { ...r, focus: true } : r))}>
+              <button type="button" className={`ghost ${railFocus ? "on" : ""}`} onClick={() => setLiveRun((r) => (r ? { ...r, focus: true } : r))}>
                 <span className="qn">
-                  <span className="spinner" style={{ marginRight: 0 }} />
+                  <span className="spinner" aria-hidden="true" style={{ marginRight: 0 }} />
                   <span className="name">{liveRun.label}</span>
                 </span>
                 <span className="qm">{stageLabel}</span>
@@ -414,6 +416,7 @@ export default function Cockpit() {
           <div
             className={`dropzone ${dragOver ? "over" : ""} ${liveRun ? "busy" : ""}`}
             role="button"
+            aria-live="polite"
             tabIndex={0}
             onClick={() => !liveRun && fileInput.current?.click()}
             onKeyDown={(e) => e.key === "Enter" && !liveRun && fileInput.current?.click()}
@@ -422,7 +425,7 @@ export default function Cockpit() {
             onDrop={(e) => { e.preventDefault(); setDragOver(false); if (!liveRun) analyzeFile(e.dataTransfer.files?.[0]); }}
           >
             {liveRun ? (
-              <><span className="spinner" /><strong style={{ display: "inline" }}>Pipeline draait…</strong>
+              <><span className="spinner" aria-hidden="true" /><strong style={{ display: "inline" }}>Pipeline draait…</strong>
                 <span className="dz-sub" style={{ display: "block" }}>{stageLabel}</span></>
             ) : (
               <><strong>Analyseer een document live</strong>
@@ -471,7 +474,7 @@ export default function Cockpit() {
                     <span className="pill mismatch">bestandsnaam zei · {doc.type_from_filename}</span>
                   )}
                   {!doc.live && fileUrl && (
-                    <button className="btn-live" onClick={analyzeCurrent} disabled={Boolean(liveRun)}>
+                    <button type="button" className="btn-live" onClick={analyzeCurrent} disabled={Boolean(liveRun)}>
                       {liveRun ? "Bezig…" : "Analyseer live"}
                     </button>
                   )}
@@ -533,6 +536,10 @@ export default function Cockpit() {
                         <input
                           className="fv-input"
                           autoFocus
+                          name={`veld-${f.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                          aria-label={`Corrigeer ${f.label}`}
+                          autoComplete="off"
+                          spellCheck={false}
                           defaultValue={editPrefill ?? edited ?? (f.missing ? "" : f.value)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") saveField(f.label, e.currentTarget.value, f.missing ? "" : f.value);
@@ -543,7 +550,7 @@ export default function Cockpit() {
                       ) : (
                         <div className="fv">
                           {edited != null ? edited : f.missing ? <span className="missing-badge">Ontbreekt</span> : f.value}
-                          <button className="fv-edit" aria-label={`Corrigeer ${f.label}`} title="Corrigeer dit veld" onClick={() => setEditingField(f.label)}>✎</button>
+                          <button type="button" className="fv-edit" aria-label={`Corrigeer ${f.label}`} title="Corrigeer dit veld" onClick={() => setEditingField(f.label)}>✎</button>
                         </div>
                       )}
                     </div>
@@ -559,7 +566,22 @@ export default function Cockpit() {
 
             <div className="card">
               <h3>
-                <span>Bevindingen · onzekerheid eerst</span>
+                <span>
+                  Bevindingen · onzekerheid eerst
+                  <span className="tip">
+                    <button type="button" className="tip-btn" aria-label="Wat betekenen de kleuren?">i</button>
+                    <span className="tip-pop" role="note">
+                      <strong>Rood · Fout</strong>
+                      <p>Harde fout uit de rekenregels of validatie. Blokkeert goedkeuren tot u corrigeert, de dossierwaarde overneemt of &apos;Klopt toch&apos; markeert.</p>
+                      <strong>Amber · Check</strong>
+                      <p>Waarschuwing: verdient uw blik, maar blokkeert niet.</p>
+                      <strong>Groen · OK</strong>
+                      <p>Geslaagde controle — ter bevestiging dat er écht gerekend is.</p>
+                      <strong>Oranje</strong>
+                      <p>Geen status maar markering: AI-voorstel (HS-kaart) of live-element. De stippen in de wachtrij volgen dezelfde rood/amber/groen-logica.</p>
+                    </span>
+                  </span>
+                </span>
                 <span className="counts">
                   {failCount > 0 && <b className="c-fail">{failCount} fout</b>}
                   {warnCount > 0 && <b className="c-warn">{warnCount} check</b>}
@@ -584,31 +606,29 @@ export default function Cockpit() {
                       <span className="msg">
                         {f.msg}
                         {f.resolution ? <span className="res">→ {f.resolution}</span> : null}
-                        {(canCorrect || (!done && actionable)) && (
+                        {actionable && (
                           <span className="f-actions">
                             {!done && f.fix?.value != null && (
-                              <button className="mini-btn accent" onClick={() => applyFix(f)} title="Waarde uit het dossier overnemen — u blijft de bevestiger">
+                              <button type="button" className="mini-btn accent" onClick={() => applyFix(f)} title="Waarde uit het dossier overnemen — u blijft de bevestiger">
                                 Neem &apos;{f.fix.value}&apos; over
                               </button>
                             )}
                             {canCorrect && !f.fix?.value && (
-                              <button className="mini-btn" onClick={() => correctFinding(f)} title={`Opent het veld '${targetLabel}' om te corrigeren`}>
+                              <button type="button" className="mini-btn" onClick={() => correctFinding(f)} title={`Opent het veld '${targetLabel}' om te corrigeren`}>
                                 Corrigeer {targetLabel.toLowerCase()}
                               </button>
                             )}
+                            <button
+                              type="button"
+                              className={`mini-btn resolve ${done ? "undo" : ""}`}
+                              title={done ? "Bevinding weer openzetten" : "Gecontroleerd tegen het brondocument: de waarde klopt, geen correctie nodig. Telt mee in de audit trail."}
+                              onClick={() => toggleResolved(i, f.check)}
+                            >
+                              {done ? "↩ Terugzetten" : "✓ Klopt toch"}
+                            </button>
                           </span>
                         )}
                       </span>
-                      {actionable && (
-                        <button
-                          className={`resolve-btn ${done ? "done" : ""}`}
-                          title={done ? "Terugzetten" : "Gecontroleerd — klopt toch, of elders afgehandeld"}
-                          aria-label={done ? "Bevinding terugzetten" : "Bevinding afhandelen"}
-                          onClick={() => toggleResolved(i, f.check)}
-                        >
-                          ✓
-                        </button>
-                      )}
                     </div>
                   );
                 })}
@@ -626,6 +646,10 @@ export default function Cockpit() {
                     <input
                       className="fv-input hs-input"
                       autoFocus
+                      name="hs-code"
+                      aria-label="Kies een andere HS-code"
+                      autoComplete="off"
+                      spellCheck={false}
                       defaultValue={hsOverride[doc.id] || doc.hs_suggestion.code}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
@@ -666,10 +690,10 @@ export default function Cockpit() {
                   </ul>
                   <div className="hs-note">De declarant tekent, niet het model</div>
                   <div className="actions" style={{ marginTop: 14 }}>
-                    <button className="btn accent" onClick={acceptHs} disabled={hsAccepted[doc.id]}>
+                    <button type="button" className="btn accent" onClick={acceptHs} disabled={hsAccepted[doc.id]}>
                       {hsAccepted[doc.id] ? "Code bevestigd ✓" : hsOverride[doc.id] ? "Gekozen code bevestigen" : "Code bevestigen"}
                     </button>
-                    <button className="btn secondary" onClick={() => setHsEditing(true)} disabled={hsAccepted[doc.id]}>
+                    <button type="button" className="btn secondary" onClick={() => setHsEditing(true)} disabled={hsAccepted[doc.id]}>
                       Andere code kiezen
                     </button>
                   </div>
@@ -704,14 +728,22 @@ export default function Cockpit() {
               <h3><span>Besluit declarant</span></h3>
               <div className="pad">
                 {decision === "submitted" ? (
-                  <p className="status-line ok">Ingediend bij DUANE 4 (simulatie) ✓ · audit trail vastgelegd</p>
+                  <>
+                    <p className="status-line ok">Ingediend bij DUANE 4 (simulatie) ✓ · audit trail vastgelegd</p>
+                    {doc.live && doc.started_at && decisionAt[doc.id] && (
+                      <p className="live-meta" style={{ marginTop: 8 }}>
+                        e2e gemeten: intake → besluit {((decisionAt[doc.id] - new Date(doc.started_at)) / 60000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} min
+                        {" "}(machine {(doc.duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 0 })} s · review {((decisionAt[doc.id] - new Date(doc.started_at) - doc.duration_ms) / 60000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} min)
+                      </p>
+                    )}
+                  </>
                 ) : decision === "approved" ? (
                   <div className="actions">
-                    <button className="btn" onClick={submit}>Indienen bij DUANE 4 (simulatie)</button>
+                    <button type="button" className="btn" onClick={submit}>Indienen bij DUANE 4 (simulatie)</button>
                   </div>
                 ) : (
                   <div className="actions">
-                    <button className="btn" onClick={approve} disabled={needsHs || openFails > 0}>
+                    <button type="button" className="btn" onClick={approve} disabled={needsHs || openFails > 0}>
                       Goedkeuren na review
                     </button>
                     <button
@@ -725,7 +757,7 @@ export default function Cockpit() {
                 )}
                 {!decision && openFails > 0 && (
                   <p className="hint-hs">
-                    Nog {openFails} harde fout{openFails === 1 ? "" : "en"} open — corrigeer het veld (✎) of vink de bevinding af (✓) na controle.
+                    Nog {openFails} harde fout{openFails === 1 ? "" : "en"} open — corrigeer het veld, neem de dossierwaarde over, of markeer &apos;Klopt toch&apos; na controle.
                   </p>
                 )}
                 {needsHs && !decision && openFails === 0 && <p className="hint-hs">Bevestig eerst de HS-code hierboven.</p>}
@@ -748,7 +780,7 @@ export default function Cockpit() {
       </div>
 
       {toast && (
-        <button className="toast" onClick={() => { selectDoc(toast.docId); setToast(null); }}>
+        <button type="button" className="toast" aria-live="polite" onClick={() => { selectDoc(toast.docId); setToast(null); }}>
           {toast.text}
           <span className="toast-cta">openen →</span>
         </button>

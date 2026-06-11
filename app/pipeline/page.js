@@ -118,7 +118,7 @@ export default function PipelinePage() {
   const warnCount = runDoc?.findings?.filter((f) => f.level === "warn").length || 0;
 
   return (
-    <main className="page">
+    <main id="main" className="page">
       <div className="eyebrow">GlobalLogistics · live verwerking</div>
       <h1 className="title">Live pipeline</h1>
       <div className="accent-bar" />
@@ -198,7 +198,7 @@ export default function PipelinePage() {
             <h3><span>Recente runs</span><span className="counts"><b className="c-pass">{feed.stats.runs || 0}</b></span></h3>
             <div>
               {(feed.runs || []).slice(0, 6).map((r) => (
-                <button className="hist-row" key={r.runId} onClick={() => replayRun(r, `${r.id.replace(" · LIVE", "")} — replay`)}>
+                <button type="button" className="hist-row" key={r.runId} onClick={() => replayRun(r, `${r.id.replace(" · LIVE", "")} — replay`)}>
                   <span className="hr-name">{r.id.replace(" · LIVE", "")}</span>
                   <span className="hr-meta">{r.type_detected} · {ROUTE_LABEL[r.status] || r.status}{r.mail ? " · ✉" : ""}</span>
                 </button>

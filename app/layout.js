@@ -23,10 +23,15 @@ export const metadata = {
     "PoC: van rommelige intake naar gevalideerde aangifte. AI doet het werk op schaal, de mens stuurt en oordeelt.",
 };
 
+export const viewport = { themeColor: "#f6f5f2" };
+
 export default function RootLayout({ children }) {
   return (
     <html lang="nl" className={`${inter.variable} ${fraunces.variable} ${plexMono.variable}`}>
-      <body>
+      {/* suppressHydrationWarning: browser-extensies (Grammarly e.d.) injecteren
+          attributen op <body> vóór React hydrateert — geen echte mismatch. */}
+      <body suppressHydrationWarning>
+        <a href="#main" className="skip-link">Direct naar inhoud</a>
         <header className="site-header">
           <div className="wordmark">Waimakers</div>
           <nav className="site-nav">

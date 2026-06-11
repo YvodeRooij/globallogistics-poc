@@ -1,5 +1,4 @@
 import { aggregates, metrics } from "../../lib/data";
-import PilotLearnings from "./pilot-learnings";
 
 export const metadata = { title: "Executive dashboard — GlobalLogistics PoC" };
 
@@ -80,7 +79,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <main className="page">
+    <main id="main" className="page">
       <div className="eyebrow">Project GlobalLogistics · één systeem, vier scoreboards</div>
       <h1 className="title">Executive dashboard</h1>
       <div className="accent-bar" />
@@ -160,15 +159,16 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <PilotLearnings />
-
       <aside className="note-strip">
         <div>
           <div className="note-eyebrow">Eerlijkheidsnoot bij de cijfers</div>
           <p>
-            Deze steekproef is bewust adversarieel — 14 van de 14 dossiers bevatten minstens één bevinding —
-            en de scan-kwaliteit in de datadump is gunstig. Productiecijfers per tier worden vastgesteld
-            tegen een golden set vóór elke opschalingsbeslissing.
+            Adversariële steekproef, gunstige scan-kwaliteit — productiecijfers per tier worden
+            vóór elke opschalingsbeslissing vastgesteld tegen een golden set.
+          </p>
+          <p className="byline">
+            Zoals de declarant tekent voor de aangifte, teken ik voor deze cijfers.
+            <span> — Yvo de Rooij · Engagement Manager</span>
           </p>
         </div>
         <p className="kicker">Meten gaat vóór beloven.</p>

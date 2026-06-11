@@ -31,8 +31,8 @@ export default function StageRail({ stages }) {
     <div className="stage-rail">
       {stages.map((s) => (
         <div className={`pipe-stage ${s.status}`} key={s.n}>
-          <span className="ps-marker">
-            {s.status === "start" ? <span className="spinner" style={{ margin: 0 }} /> : s.status === "done" ? "✓" : s.status === "error" ? "✕" : s.status === "skip" ? "–" : s.n}
+          <span className="ps-marker" aria-hidden="true">
+            {s.status === "start" ? <span className="spinner" aria-hidden="true" style={{ margin: 0 }} /> : s.status === "done" ? "✓" : s.status === "error" ? "✕" : s.status === "skip" ? "–" : s.n}
           </span>
           <span className="ps-body">
             <span className="ps-head">

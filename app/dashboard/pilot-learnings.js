@@ -48,13 +48,16 @@ function liveValue(key, stats) {
         ? { v: `${Math.round(stats.judge_agreement * 100)}%`, l: "judge-agreement deze sessie (proxy — golden set komt in de pilot)" }
         : null;
     case "duration": {
+      if (stats.avg_e2e_ms != null) {
+        return {
+          v: `${(stats.avg_e2e_ms / 60000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} min`,
+          l: `gemeten end-to-end: intake → besluit (machine ${stats.avg_duration_ms ? (stats.avg_duration_ms / 1000).toFixed(0) : "—"} s + review)`,
+        };
+      }
       if (!stats.avg_duration_ms) return null;
-      const review = stats.avg_review_ms != null
-        ? ` · review gemiddeld ${(stats.avg_review_ms / 60000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} min`
-        : "";
       return {
         v: `${(stats.avg_duration_ms / 1000).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} s`,
-        l: `machinetijd per document${review} — samen de echte doorlooptijd`,
+        l: "machinetijd per document — e2e verschijnt zodra een live document is goedgekeurd",
       };
     }
     case "cost":
