@@ -3,46 +3,39 @@
 import { useEffect, useState } from "react";
 
 /**
- * Pilotvoortgang per perspectief. Drie soorten datapunten, altijd gelabeld:
- *  ● berekend   — uit de DUANE 4-export (week 0 / baseline)
- *  ◆ gemeten    — live in deze PoC-sessie
- *  ┄ illustratief — het geplande pilotpad; wordt tijdens de pilot vervangen
- *  ─ doel       — het criterium van de eigenaar
+ * Pilotrapportage per eigenaar: van nulmeting naar doel.
+ * Geen verzonnen verloop — alleen drie soorten echte punten:
+ *  ● berekend — de nulmeting uit de DUANE 4-export (de situatie vandaag)
+ *  ◆ gemeten  — wat deze PoC al live heeft laten zien
+ *  ─ doel     — het criterium van de eigenaar voor de pilot
  */
 
-const WEKEN = 6;
 const UURTARIEF = 60; // aanname loonkosten declarant €/uur — invullen met echte cijfers
 
 const nl = (v, d = 0) => v.toLocaleString("nl-NL", { maximumFractionDigits: d });
 
-/* Illustratief pad van baseline naar doel: snel begin, vlakke staart. */
-function pad(baseline, doel, pow = 1.6) {
-  return Array.from({ length: WEKEN + 1 }, (_, i) => doel + (baseline - doel) * Math.pow(1 - i / WEKEN, pow));
-}
-
-function Spark({ serie, doel, referentie, fmt, liveDot }) {
-  const all = [...serie, doel, ...(referentie ? [referentie] : []), ...(liveDot ? [liveDot.v] : [])];
-  const min = Math.min(...all), max = Math.max(...all);
-  const W = 300, H = 96, P = 10;
-  const x = (i) => P + (i / WEKEN) * (W - 2 * P);
-  const y = (v) => (max === min ? H / 2 : P + (1 - (v - min) / (max - min)) * (H - 2 * P));
-  const pts = serie.map((v, i) => `${x(i)},${y(v)}`).join(" ");
+/* Schaalbalk van nu naar doel; werkt voor dalend (minuten, €) én stijgend (adoptie). */
+function VanNaar({ van, doel, fmt, live }) {
+  const W = 300, H = 64, P = 14, Y = 26;
+  const t = (v) => {
+    const f = (v - van) / (doel - van);
+    return P + Math.max(0, Math.min(1, f)) * (W - 2 * P);
+  };
   return (
-    <svg className="spark" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Voortgangscurve van baseline naar doel">
-      {referentie != null && (
-        <line x1={P} x2={W - P} y1={y(referentie)} y2={y(referentie)} className="sp-ref" />
+    <svg className="vannaar" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Van ${fmt(van)} nu naar doel ${fmt(doel)}`}>
+      <line x1={P} x2={W - P} y1={Y} y2={Y} className="vn-track" />
+      <circle cx={P} cy={Y} r="5" className="vn-nu" />
+      <text x={P} y={Y + 22} textAnchor="start" className="vn-label">nu · {fmt(van)}</text>
+      <line x1={W - P} x2={W - P} y1={Y - 9} y2={Y + 9} className="vn-doel" />
+      <text x={W - P} y={Y + 22} textAnchor="end" className="vn-label doel">doel · {fmt(doel)}</text>
+      {live != null && (
+        <>
+          <g transform={`translate(${t(live)}, ${Y}) rotate(45)`}>
+            <rect x="-4.5" y="-4.5" width="9" height="9" className="vn-live" />
+          </g>
+          <text x={t(live)} y={Y - 12} textAnchor="middle" className="vn-label live">PoC · {fmt(live)}</text>
+        </>
       )}
-      <line x1={P} x2={W - P} y1={y(doel)} y2={y(doel)} className="sp-doel" />
-      <text x={W - P} y={y(doel) - 4} textAnchor="end" className="sp-doel-label">doel {fmt(doel)}</text>
-      <polyline points={pts} className="sp-pad" />
-      <circle cx={x(0)} cy={y(serie[0])} r="4.5" className="sp-baseline" />
-      {liveDot && (
-        <g transform={`translate(${x(liveDot.week)}, ${y(liveDot.v)}) rotate(45)`}>
-          <rect x="-4" y="-4" width="8" height="8" className="sp-live" />
-        </g>
-      )}
-      <text x={x(0)} y={H - 1} textAnchor="start" className="sp-as">nu</text>
-      <text x={x(WEKEN)} y={H - 1} textAnchor="end" className="sp-as">week {WEKEN}</text>
     </svg>
   );
 }
@@ -82,47 +75,47 @@ export default function PilotVoortgang({ baseline }) {
     {
       initials: "AR", role: "CEO", epithet: "De sponsor", name: "Alex Reijnders",
       focus: "Betrouwbaarheid & compliance — geen beloftes die we niet waarmaken.",
-      serie: pad(errBase, 0.9), doel: 0.9, fmt: (v) => `${nl(v, 1)}%`,
+      van: errBase, doel: 0.9, fmt: (v) => `${nl(v, 1)}%`,
       stats: [
-        { v: `${nl(baseline.y2024.error_pct, 1)}% → ${nl(errBase, 1)}%`, l: "foutpercentage 2024 → 2025: stijgend", soort: "berekend" },
-        { v: "0", l: "HS-codes ingediend zonder handtekening", soort: "gemeten" },
-        { v: "100%", l: "besluiten met audit trail (PoC)", soort: "gemeten" },
+        { v: `${nl(baseline.y2024.error_pct, 1)}% → ${nl(errBase, 1)}%`, l: "foutpercentage 2024 → 2025: stijgend zonder ingrijpen", soort: "berekend" },
+        { v: "0", l: "HS-codes ingediend zonder handtekening in deze PoC", soort: "gemeten" },
+        { v: "100%", l: "besluiten met audit trail in deze PoC", soort: "gemeten" },
       ],
     },
     {
       initials: "JS", role: "COO", epithet: "De kampioen", name: "Jordan Smit",
       focus: "Doorlooptijd per dossier en first-time-right — verdwijnt het werk echt?",
-      serie: pad(ltBase, 15), doel: 15, fmt: (v) => `${nl(v)} min`,
-      liveDot: liveE2e ? { week: 0.4, v: liveE2e } : null,
+      van: ltBase, doel: 15, fmt: (v) => `${nl(v)} min`,
+      live: liveE2e,
       stats: [
         { v: `${nl(ltBase)} min`, l: `gemiddelde doorlooptijd (mediaan ${nl(baseline.y2025.median_leadtime_min)}, p90 ${nl(baseline.y2025.p90_leadtime_min)})`, soort: "berekend" },
         liveE2e
-          ? { v: `${nl(liveE2e, 1)} min`, l: "intake → besluit, gemeten in deze PoC", soort: "gemeten" }
-          : { v: "—", l: "PoC-meting verschijnt na eerste goedgekeurde live run", soort: "gemeten" },
-        { v: `${nl(100 - errBase, 1)}%`, l: "first-time-right baseline → doel > 99%", soort: "berekend" },
+          ? { v: `${nl(liveE2e, 1)} min`, l: "intake → besluit, gemeten in deze PoC-sessie", soort: "gemeten" }
+          : { v: "—", l: "PoC-meting verschijnt na de eerste goedgekeurde live run", soort: "gemeten" },
+        { v: `${nl(100 - errBase, 1)}%`, l: "first-time-right vandaag → doel > 99%", soort: "berekend" },
       ],
     },
     {
       initials: "BC", role: "CFO", epithet: "De realist", name: "Bart Coppens",
-      focus: "Huidige versus verwachte kostencurve per aangifte — en het break-evenpunt.",
-      serie: pad(kostBase, kostDoel), doel: kostDoel, referentie: kostBase, fmt: (v) => `€${nl(v)}`,
+      focus: "Kosten per aangifte: wat het nu kost en wat het bij het doel kost.",
+      van: kostBase, doel: kostDoel, fmt: (v) => `€${nl(v)}`,
       stats: [
-        { v: `€${nl(kostBase)}`, l: `huidige kosten per aangifte (${nl(ltBase)} min × €${UURTARIEF}/u — aanname, invullen met echte loonkosten)`, soort: "berekend" },
+        { v: `€${nl(kostBase)}`, l: `nu: ${nl(ltBase)} min × €${UURTARIEF}/u (uurtarief is een aanname — invullen met echte loonkosten)`, soort: "berekend" },
+        { v: `€${nl(kostDoel)}`, l: "bij het doel: 15 min menstijd + AI-kosten", soort: "doel" },
         liveKosten != null
-          ? { v: `$${liveKosten.toFixed(2)}`, l: "gemeten AI-kosten per document (PoC)", soort: "gemeten" }
-          : { v: "—", l: "AI-kosten verschijnen na eerste live run", soort: "gemeten" },
-        { v: `€${nl(kostDoel)}`, l: "verwachte kosten bij 15 min menstijd + AI", soort: "doel" },
+          ? { v: `$${liveKosten.toFixed(2)}`, l: "AI-kosten per document, gemeten in deze PoC", soort: "gemeten" }
+          : { v: "—", l: "AI-kosten verschijnen na de eerste live run", soort: "gemeten" },
       ],
     },
     {
       initials: "ML", role: "CHRO", epithet: "De beschermer", name: "Morgan de Laet",
       focus: "Adoptiegraad — gebruiken declaranten het vrijwillig, en doet een senior als Henk mee?",
-      serie: pad(0, 80, 1), doel: 75, fmt: (v) => `${nl(v)}%`,
+      van: 0, doel: 75, fmt: (v) => `${nl(v)}%`,
       stats: [
-        { v: "0% → 75%", l: "adoptiegraad: % declaranten dat vrijwillig via de cockpit werkt", soort: "doel" },
+        { v: "75%", l: "doel: aandeel declaranten dat vrijwillig via de cockpit werkt", soort: "doel" },
         liveRubber != null
           ? { v: `${nl(liveRubber * 100)}%`, l: liveRubber === 1 ? "goedgekeurd zonder correctie — bij structureel 100% een rode vlag" : "goedgekeurd zonder correctie (gezond: er wordt gecorrigeerd)", soort: "gemeten" }
-          : { v: "—", l: "rubber-stamp-check verschijnt na eerste besluiten", soort: "gemeten" },
+          : { v: "—", l: "rubber-stamp-check verschijnt na de eerste besluiten", soort: "gemeten" },
         { v: `${stats?.precedents ?? 0}`, l: "precedenten geborgd door declaranten (kennisborging)", soort: "gemeten" },
       ],
     },
@@ -132,14 +125,13 @@ export default function PilotVoortgang({ baseline }) {
     <section className="voortgang">
       <div className="voortgang-head">
         <div>
-          <div className="eyebrow">Pilotvoortgang · vier perspectieven, één systeem</div>
-          <h2>Waar staan we — per eigenaar</h2>
+          <div className="eyebrow">De pilot moet nog starten — dit is het vertrekpunt en het doel</div>
+          <h2>Van nulmeting naar doel — per eigenaar</h2>
         </div>
         <div className="herkomst-legend">
           <Tag soort="berekend">● berekend uit DUANE&nbsp;4-export</Tag>
           <Tag soort="gemeten">◆ gemeten in deze PoC</Tag>
-          <Tag soort="illustratief">┄ illustratief pilotpad</Tag>
-          <Tag soort="doel">─ doel</Tag>
+          <Tag soort="doel">─ doel van de pilot</Tag>
         </div>
       </div>
 
@@ -157,7 +149,7 @@ export default function PilotVoortgang({ baseline }) {
               </div>
             </header>
             <p className="prog-focus">{p.focus}</p>
-            <Spark serie={p.serie} doel={p.doel} referentie={p.referentie} fmt={p.fmt} liveDot={p.liveDot} />
+            <VanNaar van={p.van} doel={p.doel} fmt={p.fmt} live={p.live} />
             <div className="prog-stats">
               {p.stats.map((s, i) => (
                 <div className="prog-stat" key={i}>
