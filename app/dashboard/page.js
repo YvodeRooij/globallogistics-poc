@@ -29,7 +29,7 @@ export default function Dashboard() {
             </div>
             <div className="metric">
               <div className="k">45<span className="unit"> min</span></div>
-              <div className="l">handwerk per dossier (interviews){b.facturatie ? ` — facturatie meet ${nl(b.facturatie.min_per_aangifte, 1)} min geschreven tijd` : ""}</div>
+              <div className="l">handwerk per dossier (Jordan [29:37], Henk [02:10]){b.facturatie ? ` — facturatie meet ${nl(b.facturatie.min_per_aangifte, 1)} min geschreven tijd` : ""}</div>
             </div>
             <div className="metric">
               <div className="k"><em>{nl(b.y2025.error_pct, 1)}%</em></div>

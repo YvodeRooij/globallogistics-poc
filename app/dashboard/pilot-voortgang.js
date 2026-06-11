@@ -74,20 +74,20 @@ export default function PilotVoortgang({ baseline }) {
     {
       initials: "AR", role: "CEO", epithet: "De sponsor", name: "Alex Reijnders",
       focus: "Betrouwbaarheid & compliance — geen beloftes die we niet waarmaken.",
-      metric: `Foutpercentage op aangiftes · doel < 1% (pilotcriterium) · basis: DUANE 4-deelset, ${nl(baseline.n)} aangiftes`,
+      metric: `Foutpercentage op aangiftes · doel < 1% (pilotcriterium, Jordan [29:37]) · basis: DUANE 4-deelset, ${nl(baseline.n)} aangiftes`,
       van: errBase, doel: 1, fmt: (v) => `${nl(v, 1)}%`,
       stats: [
-        { v: `${nl(baseline.y2024.error_pct, 1)}% → ${nl(errBase, 1)}%`, l: "fouttrend 2024 → 2025: stijgend zonder ingrijpen (DUANE 4-export)", soort: "berekend" },
+        { v: "80/20 → 20/80", l: `de noordster: van 80% typewerk naar 80% advieswerk — Alex [01:14]: "I want to flip it. Twenty, eighty. That's the whole north star" (+ casebrief Exhibit 2)`, soort: "interview" },
         fact
           ? { v: k(fact.boetes.verwijtbaar), l: `verwijtbare douaneboetes 2024, van ${k(fact.boetes.totaal)} totaal (facturatie-werkboek) — Henks "drie ton"`, soort: "berekend" }
           : { v: "—", l: "boetes: facturatie-werkboek niet gevonden", soort: "berekend" },
-        { v: "0", l: "HS-codes ingediend zonder menselijke handtekening in deze PoC — naast de rubber-stamp-check, anders is het veiligheidstheater", soort: "gemeten" },
+        { v: "0", l: `HS-codes zonder menselijke handtekening in deze PoC — Alex' randvoorwaarde "accuracy and auditability are non-negotiable" [06:37]; kill-criterium: ROI binnen 12 maanden [08:11]`, soort: "gemeten" },
       ],
     },
     {
       initials: "JS", role: "COO", epithet: "De kampioen", name: "Jordan Smit",
-      focus: "Handwerk per dossier en first-time-right — verdwijnt het werk echt?",
-      metric: "Handwerk per dossier · doel 15 min (pilotcriterium, Jordan [29:03]) · balk vult met gemeten vloer-minuten, niet met demo-tijd",
+      focus: `Zijn drie pilotcriteria [29:37]: tijd, fouten (zie CEO-paneel) en adoptie (zie CHRO-paneel) — "the adoption number is as real to me as the time number".`,
+      metric: `Handwerk per dossier · doel 15 min — Jordan [29:37]: "I want to see forty-five down toward fifteen, that's the headline" · balk vult met gemeten vloer-minuten, niet met demo-tijd`,
       van: HANDWERK_MIN, doel: 15, fmt: (v) => `${nl(v)} min`,
       stats: [
         fact
@@ -101,24 +101,24 @@ export default function PilotVoortgang({ baseline }) {
     },
     {
       initials: "BC", role: "CFO", epithet: "De realist", name: "Bart Coppens",
-      focus: "Cost-to-serve-proxy, de uurtje-factuurtje-downside en de marginale AI-kost — met het pricingbesluit op tafel.",
-      metric: "Geschreven tijd per aangifte (proxy voor cost-to-serve) · echte €/aangifte volgt zodra Bart loonkosten aanlevert",
-      van: fact ? fact.min_per_aangifte : HANDWERK_MIN, doel: 15, fmt: (v) => `${nl(v, 1)} min`,
+      focus: `"Cost-to-serve per declaration... everything else is vanity next to it" [16:50] — zijn ene metric, hier als tijdwaarde tot hij loonkosten aanlevert.`,
+      metric: `Cost-to-serve per aangifte (proxy: tijdwaarde op het uurmodel) · doel op Jordans 15 min — Bart mikt zelf op 10 [17:22]`,
+      van: fact ? (fact.min_per_aangifte / 60) * (fact.omzet / fact.uren) : 45,
+      doel: fact ? (15 / 60) * (fact.omzet / fact.uren) : 15,
+      fmt: (v) => `€${nl(v, 2)}`,
       stats: [
         fact
           ? (() => {
-              const tarief = fact.omzet / fact.uren; // effectief gefactureerd uurtarief
+              const tarief = fact.omzet / fact.uren; // effectief gefactureerd uurtarief (werkboek-deelset; audited blended fee is €78 [00:24])
               const exposure = ((fact.min_per_aangifte - 15) / 60) * fact.aangiftes * tarief;
               return {
                 v: `€${nl(exposure / 1e6, 1)} mln`,
-                l: `omzet-exposure bij het 15-min-doel op het uurmodel (${nl(fact.min_per_aangifte - 15)} min minder × ${nl(fact.aangiftes)} aangiftes × €${nl(tarief, 0)}/u effectief) → beslispunt stuurgroep: fee per aangifte i.p.v. per uur`,
+                l: `omzet-exposure bij het 15-min-doel op het uurmodel — daarom wil Bart prijs van uren loskoppelen: "price the outcome, not the time it took" [06:40]`,
                 soort: "berekend",
               };
             })()
           : { v: "—", l: "facturatie-werkboek niet gevonden", soort: "berekend" },
-        fact
-          ? { v: k(fact.boetes.verwijtbaar), l: `verwijtbare boetes 2024 — de addressable bovengrens van foutreductie; top: ${boeteTop.map((r) => `${r.reden} ${k(r.bedrag)}`).join(" · ")}`, soort: "berekend" }
-          : { v: "—", l: "boetes niet gevonden", soort: "berekend" },
+        { v: "18–24 mnd", l: `payback-grens, kill-criterium — Bart [07:40]: "Six years, not interested... Under eighteen, twenty-four months, now we're talking"; uitstap ontwerpen ("kill it cheaply" [20:04])`, soort: "interview" },
         liveKosten != null
           ? { v: `$${liveKosten.toFixed(2)}`, l: "marginale AI-kost per document, live gemeten — zelfs ×10 blijft dit ~1% van de fee per aangifte: de variabele kost stort in", soort: "gemeten" }
           : { v: "—", l: "AI-kosten verschijnen na de eerste live run", soort: "gemeten" },
@@ -127,10 +127,10 @@ export default function PilotVoortgang({ baseline }) {
     {
       initials: "ML", role: "CHRO", epithet: "De beschermer", name: "Morgan de Laet",
       focus: "Adoptiegraad — gebruiken declaranten het vrijwillig, en doet een senior als Henk mee?",
-      metric: "Vrijwillige adoptie onder declaranten · doel 75% = voorstel, vast te stellen mét HR en OR · gemeten op groepsniveau, nooit per individu",
+      metric: "Vrijwillige adoptie onder declaranten · doel 75% = óns voorstel (Morgan documenteerde geen getal) · vast te stellen mét HR en OR · groepsniveau, nooit per individu",
       van: 0, doel: 75, fmt: (v) => `${nl(v)}%`,
       stats: [
-        { v: "47", l: "senior-declaranten met pensioen binnen 3 jaar (interview [02:40], door Morgan geverifieerd) — waarom kennisborging nú moet, zonder gedwongen ontslagen", soort: "interview" },
+        { v: "47 · 14 mnd", l: `senioren met pensioen ≤ 3 jaar (Morgan [02:40]) en Henks eigen klok ([11:04]: "Fourteen months. Not that I'm counting") — Morgans echte scorecard [14:18]: sleutelmensen behouden, rol aantrekkelijk voor <30, welzijn, OR "zonder oorlog"`, soort: "interview" },
         { v: "25 in / 36 uit", l: "verloop 2023 (HR-export, 86 medewerkers — scope door HR te verifiëren): instroom houdt uitstroom niet bij; reskilling is de enige route", soort: "berekend" },
         liveRubber != null
           ? { v: `${nl(liveRubber * 100)}%`, l: liveRubber === 1 ? "goedgekeurd zonder correctie — bij structureel 100% blind aftekenen: rode vlag" : "goedgekeurd zonder correctie (gezond: de vloer corrigeert en stuurt het systeem)", soort: "gemeten" }
