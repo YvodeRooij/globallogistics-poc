@@ -1,4 +1,5 @@
 import "./globals.css";
+import Link from "next/link";
 import { Inter, Fraunces, IBM_Plex_Mono } from "next/font/google";
 import NavLinks from "./nav-links";
 
@@ -36,7 +37,7 @@ export default function RootLayout({ children }) {
           <div className="wordmark">Waimakers</div>
           <nav className="site-nav">
             <NavLinks />
-            <span className="chip-confidential">PoC — Recruitment use only</span>
+            <Link href="/uitleg" className="chip-confidential" title="Hoe werkt deze PoC?">PoC — Recruitment use only</Link>
           </nav>
         </header>
         {children}

@@ -601,6 +601,51 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
   .note-strip .kicker { border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 16px 0 0; margin-top: 16px; }
 }
 
+/* ---------- uitlegpagina (/uitleg, achter de PoC-chip) ---------- */
+.u-flow { display: flex; align-items: stretch; gap: 0; margin: 8px 0 40px; flex-wrap: wrap; }
+.u-step-wrap { display: flex; align-items: center; flex: 1 1 0; min-width: 200px; }
+.u-step {
+  flex: 1; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm); padding: 18px 18px 16px; height: 100%;
+}
+.u-icon { font-size: 19px; color: var(--accent); line-height: 1; }
+.u-num { font: 700 10px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); margin-top: 10px; }
+.u-step h2 { font: 600 16.5px/1.25 var(--font-display); color: var(--ink); margin: 4px 0 8px; }
+.u-wie {
+  display: inline-block; font: 700 9.5px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--soft); background: var(--wash); border: 1px solid var(--line-strong);
+  border-radius: var(--r-full); padding: 2px 9px; margin-bottom: 10px;
+}
+.u-wie.ai { color: var(--accent-text); background: var(--accent-wash); border-color: var(--accent-line); }
+.u-wie.mens { color: #fff; background: var(--ink); border-color: var(--ink); }
+.u-step p { font-size: 12px; line-height: 1.6; color: var(--soft); }
+.u-arrow { flex: none; padding: 0 8px; color: var(--accent); font-size: 18px; font-weight: 700; }
+@media (max-width: 1100px) {
+  .u-step-wrap { flex-basis: 100%; }
+  .u-arrow { display: none; }
+  .u-step { margin-bottom: 12px; }
+}
+.u-kop { font: 600 22px/1.25 var(--font-display); color: var(--ink); margin: 0 0 16px; text-wrap: balance; }
+.u-rollen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 40px; }
+@media (max-width: 900px) { .u-rollen { grid-template-columns: 1fr; } }
+.u-rol { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-sm); padding: 20px; }
+.u-rol h3 { font: 600 16px var(--font-display); color: var(--ink); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.u-chip { font: 700 9.5px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); border: 1px solid var(--line-strong); border-radius: var(--r-full); padding: 2px 8px; }
+.u-rol ul { margin: 12px 0; padding-left: 18px; display: grid; gap: 7px; }
+.u-rol li { font-size: 12.5px; line-height: 1.55; color: var(--body); }
+.u-rol .u-why { font: italic 500 12.5px/1.55 var(--font-display); color: var(--soft); border-top: 1px solid var(--line-soft); padding-top: 10px; }
+.u-kleuren { margin-bottom: 40px; }
+.u-kleur-rij { display: flex; gap: 22px; flex-wrap: wrap; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-sm); padding: 16px 20px; }
+.u-kleur { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--soft); }
+.u-kleur b { color: var(--ink); }
+.u-kleur .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.u-kleur .dot.fail { background: var(--fail); }
+.u-kleur .dot.warn { background: var(--warn); }
+.u-kleur .dot.pass { background: var(--pass); }
+.u-kleur .dot.accent { background: var(--accent); }
+.u-terug { color: #fff; text-decoration: none; font: italic 500 19px var(--font-display); }
+.u-terug:hover { text-decoration: underline; }
+
 /* ---------- pilotvoortgang per perspectief ---------- */
 .dossier-line {
   font-size: 12px; color: var(--soft); margin-bottom: 12px;
