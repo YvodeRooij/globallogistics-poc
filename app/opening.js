@@ -20,6 +20,11 @@ import { useEffect, useRef, useState } from "react";
 
 const SESSION_KEY = "aangiftestraat-gezien";
 
+/* Module-scope: blijft staan tijdens client-side navigaties binnen dezelfde
+   paginalade. De harde-refresh-check mag alleen gelden voor de eerste mount
+   ná het laden van de pagina — niet voor elke terugkeer naar de cockpit. */
+let hardeCheckGedaan = false;
+
 const SHIPMENTS = [
   { ref: "CH20246006", vals: { "AFZENDER": "Priya Nair", "DATUM (BRON)": "2024/10/03", "BIJLAGEN": "4 geclaimd", "GOEDEREN": "Mineral waters, sparkling", "WAARDE": "CHF 18.640", "ZENDINGREF": "CH20246006", "GEWICHT": "12.480 kg", "COLLI": "1.040 dozen", "LAND VAN OORSPRONG": "ONTBREEKT", "ONDERTEKEND DOOR": "Émile Laurent" } },
   { ref: "SE20243533", vals: { "AFZENDER": "Lina Berg", "DATUM (BRON)": "2024/10/07", "BIJLAGEN": "3 geclaimd", "GOEDEREN": "Birch plywood panels", "WAARDE": "EUR 42.300", "ZENDINGREF": "SE20243533", "GEWICHT": "18.900 kg", "COLLI": "22 pallets", "LAND VAN OORSPRONG": "SE", "ONDERTEKEND DOOR": "Lina Berg" } },
@@ -422,12 +427,17 @@ export default function OpeningScreen() {
        bij een zachte reload komen ze uit de browsercache. */
     let hardeRefresh = false;
     try {
-      const nav = performance.getEntriesByType("navigation")[0];
-      if (nav?.type === "reload") {
-        const statisch = performance.getEntriesByType("resource").filter((r) => r.name.includes("/_next/static/"));
-        hardeRefresh = statisch.length > 0 && statisch.some((r) => r.transferSize > 0 && r.deliveryType !== "cache");
+      // alleen de eerste mount na de paginalade, en alleen kort erna —
+      // een latere klik op "Aangiftecockpit" is navigatie, geen refresh
+      if (!hardeCheckGedaan && performance.now() < 5000) {
+        const nav = performance.getEntriesByType("navigation")[0];
+        if (nav?.type === "reload") {
+          const statisch = performance.getEntriesByType("resource").filter((r) => r.name.includes("/_next/static/"));
+          hardeRefresh = statisch.length > 0 && statisch.some((r) => r.transferSize > 0 && r.deliveryType !== "cache");
+        }
       }
     } catch { /* oude browser — val terug op sessiegedrag */ }
+    hardeCheckGedaan = true;
     if (sessionStorage.getItem(SESSION_KEY) && !hardeRefresh) { setZichtbaar(false); return; }
     const sluit = () => {
       if (dichtRef.current) return;
