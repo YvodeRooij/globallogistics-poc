@@ -601,6 +601,50 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
   .note-strip .kicker { border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 16px 0 0; margin-top: 16px; }
 }
 
+/* ---------- pilotvoortgang per perspectief ---------- */
+.triangulatie {
+  display: flex; align-items: baseline; gap: 14px;
+  background: var(--accent-wash); border: 1px solid var(--accent-line); border-radius: var(--r-md);
+  padding: 14px 18px; margin: 0 0 28px; font-size: 13.5px; line-height: 1.6; color: var(--body);
+}
+.tri-label { flex: none; font: 700 10.5px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-text); }
+.triangulatie b { color: var(--ink); }
+
+.voortgang { margin-top: 8px; }
+.voortgang-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.voortgang-head h2 { font: 600 26px/1.2 var(--font-display); letter-spacing: -0.01em; color: var(--ink); margin-top: 6px; text-wrap: balance; }
+.herkomst-legend { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 4px; }
+.herkomst {
+  font: 600 10px var(--font-ui); letter-spacing: 0.04em; border-radius: var(--r-full);
+  padding: 2px 9px; white-space: nowrap;
+}
+.herkomst.berekend { color: var(--ink); background: #eef1f6; border: 1px solid var(--line-strong); }
+.herkomst.gemeten { color: var(--accent-text); background: var(--accent-wash); border: 1px solid var(--accent-line); }
+.herkomst.illustratief { color: var(--faint); background: var(--wash); border: 1px dashed var(--line-strong); }
+.herkomst.doel { color: var(--pass); background: var(--pass-bg); border: 1px solid rgba(23, 114, 69, 0.3); }
+
+.prog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+@media (max-width: 900px) { .prog-grid { grid-template-columns: 1fr; } }
+.prog-card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm); padding: 20px 22px 18px;
+}
+.prog-card .exec-head { padding: 0; grid-template-columns: 46px 1fr; }
+.prog-card .exec-head h3 { font: 600 20px/1.2 var(--font-display); letter-spacing: -0.01em; color: var(--ink); margin-top: 3px; }
+.prog-focus { font-size: 13px; line-height: 1.55; color: var(--soft); margin: 12px 0 6px; }
+.spark { width: 100%; height: auto; display: block; margin: 4px 0 10px; }
+.sp-pad { fill: none; stroke: var(--line-strong); stroke-width: 2; stroke-dasharray: 5 5; }
+.sp-doel { stroke: var(--pass); stroke-width: 1.5; stroke-dasharray: 2 4; }
+.sp-doel-label { font: 600 9px var(--font-ui); fill: var(--pass); }
+.sp-ref { stroke: var(--fail); stroke-width: 1.5; opacity: 0.45; }
+.sp-baseline { fill: var(--ink); }
+.sp-live { fill: var(--accent); }
+.sp-as { font: 500 9px var(--font-ui); fill: var(--faint); }
+.prog-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border-top: 1px solid var(--line-soft); padding-top: 12px; }
+@media (max-width: 560px) { .prog-stats { grid-template-columns: 1fr; } }
+.prog-stat .ps-v { font-size: 16px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.prog-stat .ps-l { font-size: 10.5px; line-height: 1.45; color: var(--faint); margin-top: 3px; }
+
 /* ---------- pilot-learnings ---------- */
 .learnings { margin-top: 36px; }
 .learnings-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
