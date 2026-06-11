@@ -709,11 +709,17 @@ export default function Cockpit() {
                       Andere code kiezen
                     </button>
                   </div>
-                  {hsAccepted[doc.id] && (
+                  {hsAccepted[doc.id] ? (
                     <p className="micro">
                       {hsOverride[doc.id]
                         ? "Correctie vastgelegd: de gekozen code (mét het afgewezen voorstel) gaat naar de precedentbibliotheek en de golden set."
-                        : "Bevestigde code is toegevoegd aan de precedentbibliotheek — het volgende Tulip-document herkent dit meteen."}
+                        : "Bevestigde code is toegevoegd aan de precedentbibliotheek — het volgende vergelijkbare document herkent dit meteen."}
+                    </p>
+                  ) : (
+                    <p className="micro">
+                      Niet eens met het voorstel? Kies een andere code — uw correctie wordt een
+                      precedent waar élke volgende analyse van leert. Zo borgt het systeem
+                      senior-kennis vóór die met pensioen gaat.
                     </p>
                   )}
                 </div>
