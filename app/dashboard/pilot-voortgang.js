@@ -62,10 +62,11 @@ export default function PilotVoortgang({ baseline }) {
 
   if (!baseline) return null;
 
-  const ltBase = baseline.avg_leadtime_min;
+  const HANDWERK_MIN = 45; // handwerk per dossier volgens de werkvloer (interviews)
+  const systeemMin = baseline.avg_leadtime_min; // totale doorlooptijd in DUANE 4, incl. wacht- en overdrachtstijd
   const errBase = baseline.y2025.error_pct;
-  const kostBase = (ltBase / 60) * UURTARIEF;
-  const kostDoel = (15 / 60) * UURTARIEF + 0.1;
+  const kostBase = (HANDWERK_MIN / 60) * UURTARIEF; // €45 bij 45 min handwerk
+  const kostDoel = (15 / 60) * UURTARIEF;           // €15 bij 15 min handwerk
 
   const liveE2e = stats?.avg_e2e_ms ? stats.avg_e2e_ms / 60000 : null;
   const liveKosten = stats?.avg_cost_usd ?? null;
@@ -75,7 +76,8 @@ export default function PilotVoortgang({ baseline }) {
     {
       initials: "AR", role: "CEO", epithet: "De sponsor", name: "Alex Reijnders",
       focus: "Betrouwbaarheid & compliance — geen beloftes die we niet waarmaken.",
-      van: errBase, doel: 0.9, fmt: (v) => `${nl(v, 1)}%`,
+      metric: "Foutpercentage op aangiftes",
+      van: errBase, doel: 1, fmt: (v) => `${nl(v, 1)}%`,
       stats: [
         { v: `${nl(baseline.y2024.error_pct, 1)}% → ${nl(errBase, 1)}%`, l: "foutpercentage 2024 → 2025: stijgend zonder ingrijpen", soort: "berekend" },
         { v: "0", l: "HS-codes ingediend zonder handtekening in deze PoC", soort: "gemeten" },
@@ -84,32 +86,35 @@ export default function PilotVoortgang({ baseline }) {
     },
     {
       initials: "JS", role: "COO", epithet: "De kampioen", name: "Jordan Smit",
-      focus: "Doorlooptijd per dossier en first-time-right — verdwijnt het werk echt?",
-      van: ltBase, doel: 15, fmt: (v) => `${nl(v)} min`,
+      focus: "Handwerk per dossier en first-time-right — verdwijnt het werk echt?",
+      metric: "Handwerk per dossier (Jordans 45 → 15)",
+      van: HANDWERK_MIN, doel: 15, fmt: (v) => `${nl(v)} min`,
       live: liveE2e,
       stats: [
-        { v: `${nl(ltBase)} min`, l: `gemiddelde doorlooptijd (mediaan ${nl(baseline.y2025.median_leadtime_min)}, p90 ${nl(baseline.y2025.p90_leadtime_min)})`, soort: "berekend" },
+        { v: `${nl(HANDWERK_MIN)} min`, l: "handwerk per dossier volgens de werkvloer — het gemiddelde dat Jordan en Henk noemen", soort: "interview" },
+        { v: `${nl(systeemMin)} min`, l: `totale doorlooptijd in DUANE 4, mét wacht- en overdrachtstijd (mediaan ${nl(baseline.y2025.median_leadtime_min)}) — de pilot meet beide`, soort: "berekend" },
         liveE2e
           ? { v: `${nl(liveE2e, 1)} min`, l: "intake → besluit, gemeten in deze PoC-sessie", soort: "gemeten" }
           : { v: "—", l: "PoC-meting verschijnt na de eerste goedgekeurde live run", soort: "gemeten" },
-        { v: `${nl(100 - errBase, 1)}%`, l: "first-time-right vandaag → doel > 99%", soort: "berekend" },
       ],
     },
     {
       initials: "BC", role: "CFO", epithet: "De realist", name: "Bart Coppens",
       focus: "Kosten per aangifte: wat het nu kost en wat het bij het doel kost.",
+      metric: "Arbeidskosten per aangifte (volgt het COO-doel)",
       van: kostBase, doel: kostDoel, fmt: (v) => `€${nl(v)}`,
       stats: [
-        { v: `€${nl(kostBase)}`, l: `nu: ${nl(ltBase)} min × €${UURTARIEF}/u (uurtarief is een aanname — invullen met echte loonkosten)`, soort: "berekend" },
-        { v: `€${nl(kostDoel)}`, l: "bij het doel: 15 min menstijd + AI-kosten", soort: "doel" },
+        { v: `€${nl(kostBase)}`, l: `nu: ${nl(HANDWERK_MIN)} min handwerk × €${UURTARIEF}/u (uurtarief is een aanname — invullen met echte loonkosten)`, soort: "interview" },
+        { v: `€${nl(kostDoel)}`, l: "bij het doel: 15 min handwerk × €60/u — het doel volgt rechtstreeks uit Jordans 45 → 15", soort: "doel" },
         liveKosten != null
-          ? { v: `$${liveKosten.toFixed(2)}`, l: "AI-kosten per document, gemeten in deze PoC", soort: "gemeten" }
+          ? { v: `$${liveKosten.toFixed(2)}`, l: "AI-kosten per document, gemeten in deze PoC (komt bovenop de €15)", soort: "gemeten" }
           : { v: "—", l: "AI-kosten verschijnen na de eerste live run", soort: "gemeten" },
       ],
     },
     {
       initials: "ML", role: "CHRO", epithet: "De beschermer", name: "Morgan de Laet",
       focus: "Adoptiegraad — gebruiken declaranten het vrijwillig, en doet een senior als Henk mee?",
+      metric: "Adoptiegraad onder declaranten",
       van: 0, doel: 75, fmt: (v) => `${nl(v)}%`,
       stats: [
         { v: "75%", l: "doel: aandeel declaranten dat vrijwillig via de cockpit werkt", soort: "doel" },
@@ -130,6 +135,7 @@ export default function PilotVoortgang({ baseline }) {
         </div>
         <div className="herkomst-legend">
           <Tag soort="berekend">● berekend uit DUANE&nbsp;4-export</Tag>
+          <Tag soort="interview">uit de interviews</Tag>
           <Tag soort="gemeten">◆ gemeten in deze PoC</Tag>
           <Tag soort="doel">─ doel van de pilot</Tag>
         </div>
@@ -149,6 +155,7 @@ export default function PilotVoortgang({ baseline }) {
               </div>
             </header>
             <p className="prog-focus">{p.focus}</p>
+            <div className="vn-metric">{p.metric}</div>
             <VanNaar van={p.van} doel={p.doel} fmt={p.fmt} live={p.live} />
             <div className="prog-stats">
               {p.stats.map((s, i) => (

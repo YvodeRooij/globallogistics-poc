@@ -627,6 +627,8 @@ h1.title { font: 600 34px/1.15 var(--font-display); letter-spacing: -0.015em; co
 .herkomst.gemeten { color: var(--accent-text); background: var(--accent-wash); border: 1px solid var(--accent-line); }
 .herkomst.illustratief { color: var(--faint); background: var(--wash); border: 1px dashed var(--line-strong); }
 .herkomst.doel { color: var(--pass); background: var(--pass-bg); border: 1px solid rgba(23, 114, 69, 0.3); }
+.herkomst.interview { color: var(--soft); background: var(--wash); border: 1px solid var(--line-strong); }
+.vn-metric { font: 700 11px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); margin-top: 10px; }
 
 .prog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 @media (max-width: 900px) { .prog-grid { grid-template-columns: 1fr; } }

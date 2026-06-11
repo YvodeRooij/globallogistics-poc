@@ -28,16 +28,16 @@ export default function Dashboard() {
               <div className="l">aangiftes geanalyseerd · {b.dups} dubbele regels verwijderd</div>
             </div>
             <div className="metric">
-              <div className="k">{nl(b.avg_leadtime_min)}<span className="unit"> min</span></div>
-              <div className="l">gemiddelde doorlooptijd per aangifte, vandaag</div>
+              <div className="k">45<span className="unit"> min</span></div>
+              <div className="l">handwerk per dossier (werkvloer) — in het systeem staat een aangifte {nl(b.avg_leadtime_min)} min, incl. wachttijd</div>
             </div>
             <div className="metric">
               <div className="k"><em>{nl(b.y2025.error_pct, 1)}%</em></div>
               <div className="l">foutpercentage 2025 — gestegen vanaf {nl(b.y2024.error_pct, 1)}% in 2024</div>
             </div>
             <div className="metric">
-              <div className="k">€{nl((b.avg_leadtime_min / 60) * 60)}</div>
-              <div className="l">kosten per aangifte, vandaag (aanname €60/u)</div>
+              <div className="k">€45</div>
+              <div className="l">arbeidskosten per aangifte, vandaag (45 min × €60/u, aanname)</div>
             </div>
           </div>
 
