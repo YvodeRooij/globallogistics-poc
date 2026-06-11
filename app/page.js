@@ -295,8 +295,8 @@ export default function Cockpit() {
   function analyzeFile(file) {
     if (!file || liveRun) return;
     const lower = file.name.toLowerCase();
-    if (!lower.endsWith(".pdf") && !lower.endsWith(".eml")) {
-      setLiveError("Alleen PDF of .eml wordt ondersteund in de live-analyse.");
+    if (!lower.endsWith(".pdf") && !lower.endsWith(".eml") && !lower.endsWith(".xlsx")) {
+      setLiveError("Alleen PDF, Excel (.xlsx) of .eml wordt ondersteund in de live-analyse.");
       return;
     }
     const form = new FormData();
@@ -426,14 +426,14 @@ export default function Cockpit() {
                 <span className="dz-sub" style={{ display: "block" }}>{stageLabel}</span></>
             ) : (
               <><strong>Analyseer een document live</strong>
-                Sleep hier een PDF of .eml uit de datadump
+                Sleep hier een PDF, Excel of .eml uit de datadump
                 <span className="dz-sub">of klik om te kiezen · 8 stages: code waar het kan, AI waar het moet</span></>
             )}
             {liveError && <span className="dz-error">{liveError}</span>}
             <input
               ref={fileInput}
               type="file"
-              accept="application/pdf,.eml"
+              accept="application/pdf,.eml,.xlsx"
               style={{ display: "none" }}
               onChange={(e) => { analyzeFile(e.target.files?.[0]); e.target.value = ""; }}
             />
@@ -754,12 +754,13 @@ export default function Cockpit() {
 }
 
 function DocFallback({ doc }) {
+  const base = doc.id.replace(" · LIVE", "").replace(" · DUPLICAAT", "");
   return (
     <div className="doc-fallback">
       <div className="doc-fallback-frame">
         <div className="doc-glyph" aria-hidden="true" />
         <strong>Brondocument</strong>
-        <span className="doc-file">{doc.id.replace(" · LIVE", "")}{doc.id.endsWith(".xlsx") ? "" : ".pdf"}</span>
+        <span className="doc-file">{base}{/\.(xlsx|pdf|eml)$/i.test(base) ? "" : ".pdf"}</span>
         <div className="doc-chips">
           <span className="chip">type · {doc.type_detected}</span>
           <span className="chip">taal · {doc.language || "—"}</span>

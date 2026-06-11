@@ -23,7 +23,9 @@ async function readInput(req) {
     if (name.endsWith(".eml")) {
       return { eml: true, filename: file.name, bytes: Buffer.from(await file.arrayBuffer()), mail };
     }
-    if (!name.endsWith(".pdf")) return { error: "Alleen PDF of .eml wordt ondersteund" };
+    if (!name.endsWith(".pdf") && !name.endsWith(".xlsx")) {
+      return { error: "Alleen PDF, Excel (.xlsx) of .eml wordt ondersteund" };
+    }
     return { filename: file.name || "upload.pdf", bytes: Buffer.from(await file.arrayBuffer()), source: mail ? "mail" : "drop", mail };
   }
   const body = await req.json().catch(() => null);

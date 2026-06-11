@@ -34,7 +34,10 @@ async function heartbeat() {
 
 async function pushToPipeline(attachment, mailMeta) {
   const form = new FormData();
-  form.append("file", new Blob([attachment.content], { type: "application/pdf" }), attachment.filename || "bijlage.pdf");
+  const mime = /\.xlsx$/i.test(attachment.filename || "")
+    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    : "application/pdf";
+  form.append("file", new Blob([attachment.content], { type: mime }), attachment.filename || "bijlage.pdf");
   form.append("mail", JSON.stringify(mailMeta));
   const res = await fetch(`${POC_URL}/api/pipeline`, { method: "POST", body: form });
   await res.text(); // NDJSON-stream leegtrekken; resultaat staat in de store/feed
@@ -65,7 +68,10 @@ async function run() {
               const msg = await client.fetchOne(uid, { source: true });
               const parsed = await simpleParser(msg.source);
               const pdfs = (parsed.attachments || []).filter(
-                (a) => a.contentType === "application/pdf" || /\.pdf$/i.test(a.filename || "")
+                (a) =>
+                  a.contentType === "application/pdf" ||
+                  (a.contentType || "").includes("spreadsheetml") ||
+                  /\.(pdf|xlsx)$/i.test(a.filename || "")
               );
               const mailMeta = {
                 from: parsed.from?.text || null,

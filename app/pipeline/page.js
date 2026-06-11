@@ -68,8 +68,8 @@ export default function PipelinePage() {
   async function analyzeFile(file) {
     if (!file || busy) return;
     const lower = file.name.toLowerCase();
-    if (!lower.endsWith(".pdf") && !lower.endsWith(".eml")) {
-      setError("Alleen PDF of .eml wordt ondersteund.");
+    if (!lower.endsWith(".pdf") && !lower.endsWith(".eml") && !lower.endsWith(".xlsx")) {
+      setError("Alleen PDF, Excel (.xlsx) of .eml wordt ondersteund.");
       return;
     }
     setBusy(file.name);
@@ -154,11 +154,11 @@ export default function PipelinePage() {
                 <span className="dz-sub" style={{ display: "block" }}>{busy}</span></>
             ) : (
               <><strong>Document of e-mail invoeren</strong>
-                Sleep een PDF of .eml hierheen
+                Sleep een PDF, Excel of .eml hierheen
                 <span className="dz-sub">elke PDF-bijlage in een .eml wordt een eigen run</span></>
             )}
             {error && <span className="dz-error">{error}</span>}
-            <input ref={fileInput} type="file" accept="application/pdf,.eml" style={{ display: "none" }}
+            <input ref={fileInput} type="file" accept="application/pdf,.eml,.xlsx" style={{ display: "none" }}
               onChange={(e) => { analyzeFile(e.target.files?.[0]); e.target.value = ""; }} />
           </div>
 
