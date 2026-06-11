@@ -29,15 +29,15 @@ export default function Dashboard() {
             </div>
             <div className="metric">
               <div className="k">45<span className="unit"> min</span></div>
-              <div className="l">handwerk per dossier (werkvloer) — in het systeem staat een aangifte {nl(b.avg_leadtime_min)} min, incl. wachttijd</div>
+              <div className="l">handwerk per dossier (interviews){b.facturatie ? ` — facturatie meet ${nl(b.facturatie.min_per_aangifte, 1)} min geschreven tijd` : ""}</div>
             </div>
             <div className="metric">
               <div className="k"><em>{nl(b.y2025.error_pct, 1)}%</em></div>
               <div className="l">foutpercentage 2025 — gestegen vanaf {nl(b.y2024.error_pct, 1)}% in 2024</div>
             </div>
             <div className="metric">
-              <div className="k">€45</div>
-              <div className="l">arbeidskosten per aangifte, vandaag (45 min × €60/u, aanname)</div>
+              <div className="k">{b.facturatie ? `€${nl(b.facturatie.boetes.totaal / 1000)}k` : "—"}</div>
+              <div className="l">douaneboetes 2024{b.facturatie ? ` — waarvan €${nl(b.facturatie.boetes.verwijtbaar / 1000)}k verwijtbaar` : ""}</div>
             </div>
           </div>
 
