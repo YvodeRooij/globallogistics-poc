@@ -149,6 +149,12 @@ export default function Cockpit() {
   );
   const fieldLabelSet = useMemo(() => new Set(displayFields(doc).map((r) => r.label)), [doc]);
 
+  /* Dossier = de aangifte-in-wording: alle documenten met dezelfde zendingref.
+     Het besluit hoort in productie op dít niveau, niet per los document. */
+  const dossierKey = doc.dossierRef || doc.ref || null;
+  const dossierDocs = dossierKey ? allDocs.filter((d) => (d.dossierRef || d.ref) === dossierKey) : [];
+  const dossierReleased = dossierDocs.filter((d) => decisions[d.id]).length;
+
   const totalDocs = agg.docs + liveDocs.length;
   const approvedCount = Object.values(decisions).filter(Boolean).length;
   const submittedCount = Object.values(decisions).filter((v) => v === "submitted").length;
@@ -727,6 +733,11 @@ export default function Cockpit() {
             <div className="card">
               <h3><span>Besluit declarant</span></h3>
               <div className="pad">
+                {dossierDocs.length > 1 && (
+                  <p className="dossier-line">
+                    Bewijsstuk bij aangifte <b>{dossierKey}</b> · {dossierDocs.length} documenten in dit dossier · {dossierReleased} vrijgegeven
+                  </p>
+                )}
                 {decision === "submitted" ? (
                   <>
                     <p className="status-line ok">Ingediend bij DUANE 4 (simulatie) ✓ · audit trail vastgelegd</p>
@@ -738,13 +749,20 @@ export default function Cockpit() {
                     )}
                   </>
                 ) : decision === "approved" ? (
-                  <div className="actions">
-                    <button type="button" className="btn" onClick={submit}>Indienen bij DUANE 4 (simulatie)</button>
+                  <div className="actions-col">
+                    <div className="actions">
+                      <button type="button" className="btn" onClick={submit}>Indienen bij DUANE 4 (simulatie)</button>
+                    </div>
+                    {dossierDocs.length > 1 && dossierReleased < dossierDocs.length && (
+                      <p className="hint-hs">
+                        Nog {dossierDocs.length - dossierReleased} document{dossierDocs.length - dossierReleased === 1 ? "" : "en"} van dit dossier niet vrijgegeven — in productie dient u de aangifte pas dáárna in.
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="actions">
                     <button type="button" className="btn" onClick={approve} disabled={needsHs || openFails > 0}>
-                      Goedkeuren na review
+                      {dossierDocs.length > 1 ? "Document vrijgeven voor aangifte" : "Goedkeuren na review"}
                     </button>
                     <button
                       className="btn secondary"

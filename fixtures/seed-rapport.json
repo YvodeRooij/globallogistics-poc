@@ -1,0 +1,146 @@
+[
+  {
+    "id": "Commercial_Invoice_CH20246006",
+    "status": "review_vereist",
+    "fails": 1,
+    "warns": 0,
+    "hs": "-",
+    "cost": 0.0681,
+    "ms": 21788
+  },
+  {
+    "id": "Packing_List_CH20246006",
+    "status": "escalatie_senior",
+    "fails": 4,
+    "warns": 3,
+    "hs": "2201.10.11 (70%)",
+    "cost": 0.0866,
+    "ms": 27608
+  },
+  {
+    "id": "Email_CH20246006",
+    "status": "escalatie_senior",
+    "fails": 0,
+    "warns": 4,
+    "hs": "2201.10.11 (40%)",
+    "cost": 0.0679,
+    "ms": 30118
+  },
+  {
+    "id": "Certificate_of_Origin_CH20246006",
+    "status": "escalatie_classificatie",
+    "fails": 0,
+    "warns": 1,
+    "hs": "2201.10.11 (90%)",
+    "cost": 0.0659,
+    "ms": 25202
+  },
+  {
+    "id": "Email_SE20243533",
+    "status": "escalatie_senior",
+    "fails": 0,
+    "warns": 5,
+    "hs": "3004.90.00 (55%)",
+    "cost": 0.0647,
+    "ms": 21671
+  },
+  {
+    "id": "Commercial_Invoice_SE20243533",
+    "status": "escalatie_senior",
+    "fails": 0,
+    "warns": 3,
+    "hs": "-",
+    "cost": 0.0671,
+    "ms": 21121
+  },
+  {
+    "id": "Bata_factuur",
+    "status": "auto_ok_met_notitie",
+    "fails": 0,
+    "warns": 2,
+    "hs": "-",
+    "cost": 0.0666,
+    "ms": 22286
+  },
+  {
+    "id": "Istanbul_factuur",
+    "status": "review_vereist",
+    "fails": 4,
+    "warns": 1,
+    "hs": "-",
+    "cost": 0.0708,
+    "ms": 24155
+  },
+  {
+    "id": "Packing_List_SE20243533",
+    "status": "escalatie_senior",
+    "fails": 3,
+    "warns": 4,
+    "hs": "3004.90.00 (70%)",
+    "cost": 0.091,
+    "ms": 30458
+  },
+  {
+    "id": "IMG_1458",
+    "status": "escalatie_senior",
+    "fails": 2,
+    "warns": 3,
+    "hs": "8528.52.00 (75%)",
+    "cost": 0.0768,
+    "ms": 23656
+  },
+  {
+    "id": "scan0248",
+    "status": "review_vereist",
+    "fails": 1,
+    "warns": 2,
+    "hs": "-",
+    "cost": 0.0713,
+    "ms": 27235
+  },
+  {
+    "id": "Rechnung_2025_02",
+    "status": "escalatie_senior",
+    "fails": 1,
+    "warns": 4,
+    "hs": "8708.99.97 (55%)",
+    "cost": 0.0728,
+    "ms": 35718
+  },
+  {
+    "id": "CCF25012024_0001",
+    "status": "review_vereist",
+    "fails": 2,
+    "warns": 3,
+    "hs": "-",
+    "cost": 0.0616,
+    "ms": 21031
+  },
+  {
+    "id": "WhatsApp_Image_20240612_at_10_53_10",
+    "status": "auto_ok_met_notitie",
+    "fails": 0,
+    "warns": 3,
+    "hs": "-",
+    "cost": 0.0671,
+    "ms": 24372
+  },
+  {
+    "id": "line_items_CH20246006.xlsx",
+    "status": "auto_ok_met_notitie",
+    "fails": 0,
+    "warns": 3,
+    "hs": "-",
+    "cost": 0.0641,
+    "ms": 30225
+  },
+  {
+    "id": "line_items_NL20256336.xlsx",
+    "status": "escalatie_senior",
+    "fails": 1,
+    "warns": 3,
+    "hs": "8528.52.00 (75%)",
+    "cost": 0.0618,
+    "ms": 21775
+  }
+]

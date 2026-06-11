@@ -11,199 +11,2978 @@
   },
   "dossiers": [
     {
-      "id": "CH20246006", "client": "Mistral Alpenwasser AG → Alpenwasser Mineral AG", "tier": 1,
-      "goods": "Mineral waters, sparkling", "docs": ["Email_CH20246006", "Commercial_Invoice_CH20246006", "Packing_List_CH20246006", "Certificate_of_Origin_CH20246006", "line_items_CH20246006.xlsx"],
+      "id": "CH20246006",
+      "client": "Mistral Alpenwasser AG → Alpenwasser Mineral AG",
+      "tier": 1,
+      "goods": "Mineral waters, sparkling",
+      "docs": [
+        "Email_CH20246006",
+        "Commercial_Invoice_CH20246006",
+        "Packing_List_CH20246006",
+        "Certificate_of_Origin_CH20246006",
+        "line_items_CH20246006.xlsx"
+      ],
       "story": "Net dossier, HS-code aanwezig — maar origin ontbreekt op factuur en wordt door het oorsprongscertificaat geleverd (cross-document verrijking). Regeltotalen paklijst kloppen niet met koptotaal."
     },
     {
-      "id": "SE20243533", "client": "Oriental Lindqvist AB → Lindqvist Pharma AB", "tier": 1,
-      "goods": "Medicaments, retail packed (pharma = hoog risico)", "docs": ["Email_SE20243533", "Commercial_Invoice_SE20243533", "Packing_List_SE20243533", "line_items_SE20243533.xlsx"],
+      "id": "SE20243533",
+      "client": "Oriental Lindqvist AB → Lindqvist Pharma AB",
+      "tier": 1,
+      "goods": "Medicaments, retail packed (pharma = hoog risico)",
+      "docs": [
+        "Email_SE20243533",
+        "Commercial_Invoice_SE20243533",
+        "Packing_List_SE20243533",
+        "line_items_SE20243533.xlsx"
+      ],
       "story": "Pharma-dossier met drie rode vlaggen: origin Zweden vs FCA Shanghai, ambigue datum 07/03/2024, Zweedse IBAN met Nederlandse BIC. E-mail claimt 1 bijlage, dossier bevat er meer."
     },
     {
-      "id": "NL20256336", "client": "Sunrise Tulip B.V. / Tulip Tech Distribution", "tier": 3,
-      "goods": "Monitors and projectors (LCD)", "docs": ["IMG_1458 (telefoonfoto paklijst)", "line_items_NL20256336.xlsx"],
+      "id": "NL20256336",
+      "client": "Sunrise Tulip B.V. / Tulip Tech Distribution",
+      "tier": 3,
+      "goods": "Monitors and projectors (LCD)",
+      "docs": [
+        "IMG_1458 (telefoonfoto paklijst)",
+        "line_items_NL20256336.xlsx"
+      ],
       "story": "HET classificatie-demomoment: HS-kolom in Excel is LEEG. AI stelt 8528.52.00 voor op basis van klant-precedent (Tulip declareerde LCD-monitors eerder als 8528.52.00 op NL20259032). Declarant keurt goed → precedentbibliotheek groeit."
     }
   ],
   "documents": [
     {
-      "id": "Email_CH20246006", "tier": 1, "type_detected": "intake_email", "language": "de", "ref": "CH20246006",
-      "extracted": {"from": "Priya Nair <alpenwasser@alpenwasser.com>", "to": "sven@globallogistics.eu", "date": "2024-10-03", "subject": "Zollabfertigung Sendung CH20246006", "attachments_claimed": 4, "signed_by": "Émile Laurent"},
-      "findings": [
-        {"check": "afzender_vs_ondertekening", "level": "warn", "msg": "Afzendernaam (Priya Nair) ≠ ondertekenaar (Émile Laurent)"},
-        {"check": "bijlagen_compleet", "level": "pass", "msg": "4 bijlagen geclaimd, 4 documenten in dossier aanwezig"}
-      ],
-      "status": "auto_ok_met_notitie"
-    },
-    {
-      "id": "Commercial_Invoice_CH20246006", "tier": 1, "type_detected": "commercial_invoice", "language": "de", "ref": "CH20246006",
-      "extracted": {"seller": "Mistral Alpenwasser AG, Hafenstraße 12, Zürich (CH)", "buyer": "Alpenwasser Mineral AG", "invoice_no": "CH20246006", "date": "2024-10-03", "date_format_source": "yyyy/mm/dd", "incoterms": "DDP Genoa", "currency": "CHF", "origin": null, "total": 8453520.81, "lines": 7, "hs_on_doc": "2201.10.11", "qty": [1475, 2206, 2723, 1622, 4282, 3681, 2700], "unit": "L"},
-      "findings": [
-        {"check": "verplicht_veld_origin", "level": "fail", "msg": "Country of origin ontbreekt ('—')", "resolution": "Geleverd door Certificate_of_Origin: Switzerland → mens bevestigt"},
-        {"check": "rekensom_regels", "level": "pass", "msg": "Σ regels = 8.453.520,81 = factuurtotaal ✓"},
-        {"check": "prijsplausibiliteit", "level": "warn", "msg": "CHF 178–894 per LITER mineraalwater — extreem; mogelijk verkeerde eenheid of prijs/colli"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "Packing_List_CH20246006", "tier": 1, "type_detected": "packing_list", "language": "de", "ref": "CH20246006",
-      "extracted": {"shipper_address_on_doc": "No. 1788 Pudong Rd, Zürich (CH)", "packages": 10, "gross_kg_header": 1743.5, "net_kg_header": 1425.7, "container": "MSKU8117969", "lines": 7, "net_kg_sum_lines": 1206.7, "gross_kg_sum_lines": 1327.37},
-      "findings": [
-        {"check": "kruiscontrole_aantallen_factuur", "level": "pass", "msg": "Alle 7 hoeveelheden identiek aan factuur ✓"},
-        {"check": "regelsom_vs_koptotaal_net", "level": "fail", "msg": "Σ netto regels 1.206,7 kg ≠ kop 1.425,7 kg (Δ 219,0)"},
-        {"check": "regelsom_vs_koptotaal_bruto", "level": "fail", "msg": "Σ bruto regels 1.327,4 kg ≠ kop 1.743,5 kg (Δ 416,1)"},
-        {"check": "adres_consistentie", "level": "warn", "msg": "Zelfde afzender, ander adres dan factuur (Hafenstraße 12 vs No. 1788 Pudong Rd)"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "Certificate_of_Origin_CH20246006", "tier": 1, "type_detected": "certificate_of_origin", "language": "en", "ref": "CH20246006",
-      "extracted": {"origin": "Switzerland", "consignor": "Mistral Alpenwasser AG", "consignee": "Alpenwasser Mineral AG", "transport": "Rhenus", "date": "2024-10-03"},
-      "findings": [{"check": "verrijking", "level": "pass", "msg": "Levert ontbrekende origin voor factuur CH20246006: Switzerland"}],
-      "status": "auto_ok"
-    },
-    {
-      "id": "line_items_CH20246006.xlsx", "tier": 1, "type_detected": "order_lines_excel", "ref": "CH20246006",
-      "extracted": {"lines": 7, "hs": "2201.10.11", "decimal_chaos": true},
-      "findings": [
-        {"check": "kruiscontrole_factuur", "level": "pass", "msg": "Alle regels (qty, prijs, bedrag) identiek aan factuur ✓"},
-        {"check": "decimaalnotatie", "level": "warn", "msg": "Gemengde notatie in één bestand: '394252.75' naast '764936,48' — normalisatie vereist vóór rekenen"}
-      ],
-      "status": "auto_ok_met_notitie"
-    },
-    {
-      "id": "Email_SE20243533", "tier": 1, "type_detected": "intake_email", "language": "en", "ref": "SE20243533",
-      "extracted": {"from": "John Carter <lindqvist@lindqvist.com>", "date_raw": "07/03/2024", "attachments_claimed": 1, "signed_by": "Giulia Rossi", "eta_hint": "ETA Hamburg Monday"},
-      "findings": [
-        {"check": "afzender_vs_ondertekening", "level": "warn", "msg": "John Carter ≠ Giulia Rossi"},
-        {"check": "bijlagen_compleet", "level": "fail", "msg": "1 bijlage geclaimd, dossier bevat ≥3 documenten — mogelijk nazending of verkeerde mail"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "Commercial_Invoice_SE20243533", "tier": 1, "type_detected": "commercial_invoice", "language": "en", "ref": "SE20243533",
-      "extracted": {"seller": "Oriental Lindqvist AB, Göteborg (SE)", "buyer": "Lindqvist Pharma AB", "date_raw": "07/03/2024", "date_ambiguous": true, "incoterms": "FCA Shanghai", "currency": "EUR", "origin": "Sweden", "total": 7627721.42, "lines": 6, "hs_on_doc": "3004.90.00", "iban": "SE67 BANK 4286 9502 31", "bic": "ABNANL2A"},
-      "findings": [
-        {"check": "rekensom_regels", "level": "pass", "msg": "Σ regels = totaal ✓"},
-        {"check": "origin_vs_route", "level": "fail", "msg": "Origin 'Sweden' maar Incoterms 'FCA Shanghai' — herkomst en laadlocatie conflicteren; cruciaal voor preferentie/rechten"},
-        {"check": "datum_ambigu", "level": "warn", "msg": "07/03/2024: 7 maart of 3 juli? US- vs EU-notatie onbeslisbaar zonder context"},
-        {"check": "iban_bic_land", "level": "warn", "msg": "Zweedse IBAN met Nederlandse BIC (ABNANL2A)"},
-        {"check": "risicoprofiel_goederen", "level": "warn", "msg": "Pharma (3004) = verhoogd toezicht → altijd senior review"}
-      ],
-      "status": "escalatie_senior"
-    },
-    {
-      "id": "Packing_List_SE20243533", "tier": 1, "type_detected": "packing_list", "ref": "SE20243533",
-      "extracted": {"packages": 37, "gross_kg_header": 3086.1, "net_kg_header": 2748.8, "net_kg_sum_lines": 1630.9, "gross_kg_sum_lines": 1793.99, "container": "TGHU4502494"},
-      "findings": [
-        {"check": "kruiscontrole_aantallen_factuur", "level": "pass", "msg": "6/6 hoeveelheden identiek aan factuur ✓"},
-        {"check": "regelsom_vs_koptotaal", "level": "fail", "msg": "Netto: Σ 1.630,9 ≠ kop 2.748,8 | Bruto: Σ 1.794,0 ≠ kop 3.086,1"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "Bata_factuur", "tier": 2, "type_detected": "commercial_invoice", "type_from_filename": "factuur", "ref": "GB20251722",
-      "extracted": {"seller": "Bata Footwear Europe Ltd, Manchester (GB)", "buyer": "Bata Footwear Europe Ltd", "ship_to": "No. 1788 Pudong Rd, Manchester (GB)", "date_raw": "05/14/2024", "date_format": "US (mm/dd)", "incoterms": "CIF Felixstowe", "currency": "GBP", "origin": "United Kingdom", "total": 4820573.95, "hs_on_doc": "6403.99.96"},
-      "findings": [
-        {"check": "rekensom_regels", "level": "pass", "msg": "Σ regels = 4.820.573,95 ✓"},
-        {"check": "verkoper_is_koper", "level": "warn", "msg": "Seller = Buyer (intra-company): andere waarderingsregels (transfer pricing) mogelijk van toepassing"},
-        {"check": "datumformaat", "level": "warn", "msg": "05/14/2024 dwingt US-notatie af (14e maand bestaat niet) — formaatdetectie geslaagd"},
-        {"check": "adres_plausibiliteit", "level": "warn", "msg": "'No. 1788 Pudong Rd' in Manchester (GB) — Chinese adresconventie; origin UK twijfelachtig"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "Istanbul_factuur", "tier": 2, "type_detected": "packing_list", "type_from_filename": "factuur", "ref": "TR20244065",
-      "extracted": {"shipper": "Apex Istanbul Ltd Sti", "date_raw": "2025/08/06", "packages": 25, "gross_kg_header": 12625.0, "net_kg_header": 11469.8, "lines": 9, "net_kg_sum_lines": 6813.4, "goods": "Hand-knotted wool carpets"},
-      "findings": [
-        {"check": "bestandsnaam_vs_inhoud", "level": "fail", "msg": "Bestandsnaam zegt 'factuur', inhoud is PAKLIJST — classificeer op inhoud, nooit op naam"},
-        {"check": "ref_vs_datum", "level": "warn", "msg": "Zendingref TR2024xxxx maar documentdatum 2025/08/06 — jaarconflict"},
-        {"check": "gewichtsplausibiliteit", "level": "fail", "msg": "Regel 3: 566 tapijten = 15,6 kg → 27 gram per handgeknoopt tapijt"},
-        {"check": "regelsom_vs_koptotaal", "level": "fail", "msg": "Σ netto 6.813,4 ≠ kop 11.469,8"},
-        {"check": "dossier_koppeling", "level": "pass", "msg": "Bijbehorende Commercial_Invoice_TR20244065.pdf gevonden in dump → koppelen"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "Rechnung_2025_02", "tier": 2, "type_detected": "cmr_vrachtbrief", "type_from_filename": "rechnung (factuur)", "ref": "DE20243673",
-      "extracted": {"sender": "Mistral Rheinmetall GmbH", "consignee": "Rheinmetall Components GmbH", "place_of_delivery": "Ningbo", "taking_over": "Felixstowe, 30-03-2024", "carrier": "Jan de Rijk", "gross_kg": 12797.0, "goods": "Parts of motor vehicles"},
-      "findings": [
-        {"check": "bestandsnaam_vs_inhoud", "level": "fail", "msg": "'Rechnung_2025_02' is geen factuur maar een CMR-vrachtbrief"},
-        {"check": "bestandsnaam_vs_datum", "level": "warn", "msg": "Naam zegt 2025, document zegt 30-03-2024"},
-        {"check": "route_plausibiliteit", "level": "warn", "msg": "Aflevering Ningbo (CN) bij Duitse consignee — exportstroom: andere aangiftesoort"},
-        {"check": "dossier_koppeling", "level": "pass", "msg": "Commercial_Invoice_DE20243673 + line_items_DE20243673.xlsx in dump → koppelen"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "scan0248", "tier": 3, "type_detected": "commercial_invoice", "type_from_filename": "scan (nietszeggend)", "ref": "DE20248224",
-      "extracted": {"seller": "Mistral Rheinmetall GmbH, Plot 22 MIDC, Hamburg (DE)", "buyer": "Rheinmetall Components GmbH", "date_raw": "13-05-2024", "incoterms": "FCA Rotterdam", "currency": "EUR", "origin": null, "total": 5506462.79, "hs_on_doc": "8708.99.97", "iban": "DE28 BANK 3542 5677 12", "bic": "ABNANL2A"},
-      "findings": [
-        {"check": "rekensom_regels", "level": "pass", "msg": "Σ regels = totaal ✓ (ondanks scan-bron)"},
-        {"check": "verplicht_veld_origin", "level": "fail", "msg": "Origin ontbreekt — geen CoO in dump gevonden voor DE20248224 → opvragen bij klant (auto-conceptmail)"},
-        {"check": "iban_bic_land", "level": "warn", "msg": "Duitse IBAN + Nederlandse BIC — patroon herhaalt zich over klanten heen → systemische bevinding"},
-        {"check": "bestandsnaam", "level": "warn", "msg": "Ref in document (DE20248224) ≠ enige ref in bestandsnaam — vindbaarheid alleen via inhoud"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "IMG_1458", "tier": 3, "type_detected": "packing_list", "type_from_filename": "telefoonfoto", "ref": "NL20256336",
-      "extracted": {"shipper": "Sunrise Tulip B.V., Rotterdam", "date_raw": "01.07.24", "packages": 26, "gross_kg_header": 1891.2, "net_kg_header": 1778.3, "lines": 3, "net_kg_sum_lines": 1165.4, "goods": "Monitors and projectors (LCD)", "qty": [960, 239, 1130]},
-      "findings": [
-        {"check": "regelsom_vs_koptotaal", "level": "fail", "msg": "Σ netto 1.165,4 ≠ kop 1.778,3"},
-        {"check": "kruiscontrole_excel", "level": "pass", "msg": "Hoeveelheden 960/239/1130 identiek aan line_items_NL20256336.xlsx ✓"},
-        {"check": "datumformaat", "level": "warn", "msg": "01.07.24 (dd.mm.yy) — derde formaat in deze steekproef"}
-      ],
-      "status": "review_vereist"
-    },
-    {
-      "id": "line_items_NL20256336.xlsx", "tier": 3, "type_detected": "order_lines_excel", "ref": "NL20256336",
-      "extracted": {"lines": 3, "hs": null, "goods": "Monitors and projectors (LCD)", "decimal_chaos": true},
-      "hs_suggestion": {
-        "code": "8528.52.00",
-        "confidence": 0.91,
-        "reasoning": "Goederenomschrijving 'Monitors and projectors (LCD)' + dezelfde klantgroep (Tulip) declareerde identiek product op NL20259032 als 8528.52.00. GN 8528.52 = monitors, geschikt voor directe aansluiting op automatische gegevensverwerkende machines.",
-        "precedents": ["NL20259032 (Tulip Tech, WhatsApp-factuur): 8528.52.00", "Omschrijving-match: 'Monitors and projectors (LCD)' 1:1"],
-        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      "id": "Email_CH20246006",
+      "live": false,
+      "type_detected": "intake_email",
+      "language": "de",
+      "ref": "CH20246006",
+      "extracted": {
+        "seller": null,
+        "buyer": null,
+        "invoice_no": null,
+        "date_raw": "2024/10/03",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Mineral waters, sparkling usw.",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": 4,
+        "signed_by": "Émile Laurent",
+        "from": "Priya Nair <alpenwasser@alpenwasser.com>",
+        "lines": null
       },
       "findings": [
-        {"check": "hs_ontbreekt", "level": "fail", "msg": "HS/GN-kolom volledig leeg → classificatie vereist"},
-        {"check": "decimaalnotatie", "level": "warn", "msg": "'550915,20' naast '37692.69' in één kolom"}
+        {
+          "check": "afzender_vs_ondertekening",
+          "level": "warn",
+          "msg": "Afzender (Priya Nair) ≠ ondertekenaar (Émile Laurent)"
+        },
+        {
+          "check": "bijlagen_compleet",
+          "level": "warn",
+          "msg": "E-mail claimt 4 bijlagen, dossier bevat er tot nu toe 1 — mogelijk nazending"
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "warn",
+          "msg": "HS-advocaat van de duivel: De voorgestelde code 2201.10.11 (bruisend mineraalwater, in verpakkingen van ≤ 2 liter) is op het eerste gezicht aannemelijk voor 'mineral waters, sparkling', maar er zijn meerdere reële alternatieve indelingen mogelijk. Het precedent is gebaseerd op een zendingreferentie zonder expliciete goederenomschrijving, wat de betrouwbaarheid ervan beperkt. Cruciale vragen blijven open: wat is de verpakkingseenheid/inhoud, is het water daadwerkelijk van minerale oorsprong (erkend bronwater), en bevat het toegevoegde suikers of aroma's? Die factoren bepalen welke post/subpost correct is. · alternatief 2201.10.19 (sterk): Bruisend mineraalwater in verpakkingen van > 2 liter valt onder 2201.10.19 in plaats van 2201.10.11. Als de zending grootverpakkingen (bijv. 5 L of bulktanks) bevat, is dit de juiste subpost. De omschrijving 'sparkling' geeft geen uitsluitsel over de verpakkingsgrootte. → confidence verlaagd, senior kijkt mee"
+        },
+        {
+          "check": "hs_confidence_drempel",
+          "level": "warn",
+          "msg": "HS-confidence 40% ligt onder de drempel van 85% → senior beoordeelt de classificatie (drempel wordt in de pilot gekalibreerd tegen de golden set)"
+        }
       ],
-      "status": "escalatie_classificatie"
+      "hs_suggestion": {
+        "code": "2201.10.11",
+        "confidence": 0.4,
+        "reasoning": "Op dit intake-e-mailbericht staat geen HS/GN-code, wel een goederenomschrijving ('Mineral waters, sparkling'). In de precedentbibliotheek bestaat een precedent met exact dezelfde zendingreferentie CH20246006 met HS 2201.10.11 (mineraalwater). De match op referentie en het type goederen (bruisend mineraalwater) maakt dit aannemelijk, maar het precedent bevat geen expliciete goederenomschrijving om volledig op af te gaan.",
+        "precedents": [
+          "CH20246006"
+        ],
+        "challenged": true,
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_senior",
+      "score": 8,
+      "duration_ms": 30118,
+      "cost_usd": 0.0679,
+      "started_at": "2026-06-11T14:57:36.997Z",
+      "finished_at": "2026-06-11T14:58:07.115Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 22,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 aeaf877aeff1… · PDF bevestigd op magic bytes",
+          "ms": 1,
+          "hash": "aeaf877aeff1"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "intake_email · taal de · ref CH20246006",
+          "ms": 3986,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfjbpYdY1uZog6PjaaP"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "5/20 velden · 0 regels · HS-suggestie aangemaakt · $0.03",
+          "ms": 3986,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfjbpYdY1uZog6PjaaP"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "0 fouten · 1 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 2
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier CH20246006: 1 document(en) · kruischecks gedraaid",
+          "ms": 1
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 2201.10.11 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 22 velden gecontroleerd, 0 afwijkingen · HS-voorstel aangevochten · $0.04",
+          "ms": 22141,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfkB72f25BaAbr9cLzN"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 8 (HS aangevochten, HS-confidence < 85%) → escalatie senior",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending CH20246006",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending CH20246006 (document: Email_CH20246006.pdf) hebben wij nog het volgende van u nodig:\n\n  • de ontbrekende bijlage(n) die in uw e-mail genoemd worden\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "CH20246006",
+      "fileUrl": "/docs/Email_CH20246006.pdf",
+      "tier": 1
     },
     {
-      "id": "WhatsApp_Image_20240612_at_10_53_10", "tier": 3, "type_detected": "commercial_invoice", "type_from_filename": "telefoonfoto", "ref": "NL20259032",
-      "extracted": {"seller": "Tulip Tech Distribution B.V., Rotterdam", "buyer": "Tulip Tech Distribution B.V.", "date_raw": "03-11-2024", "incoterms": "CPT Genoa", "currency": "EUR", "origin": "Netherlands", "total": 3900066.17, "hs_on_doc": "8528.52.00"},
+      "id": "Commercial_Invoice_CH20246006",
+      "live": false,
+      "type_detected": "commercial_invoice",
+      "language": "de",
+      "ref": "CH20246006",
+      "extracted": {
+        "seller": "Mistral Alpenwasser AG",
+        "buyer": "Alpenwasser Mineral AG",
+        "invoice_no": "CH20246006",
+        "date_raw": "2024/10/03",
+        "incoterms": "DDP Genoa",
+        "currency": "CHF",
+        "origin": null,
+        "total": 8453520.81,
+        "hs_on_doc": "2201.10.11",
+        "goods": "Mineral waters, sparkling",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "Hafenstraße 12, Zürich (CH)",
+        "lines": [
+          {
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11",
+            "qty": 1475,
+            "unit": "L",
+            "unit_price": 267.29,
+            "amount": 394252.75
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11",
+            "qty": 2206,
+            "unit": "L",
+            "unit_price": 893.91,
+            "amount": 1971965.46
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11",
+            "qty": 2723,
+            "unit": "L",
+            "unit_price": 359.07,
+            "amount": 977747.61
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11",
+            "qty": 1622,
+            "unit": "L",
+            "unit_price": 702.36,
+            "amount": 1139227.92
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11",
+            "qty": 4282,
+            "unit": "L",
+            "unit_price": 178.64,
+            "amount": 764936.48
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11",
+            "qty": 3681,
+            "unit": "L",
+            "unit_price": 648.39,
+            "amount": 2386723.59
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11",
+            "qty": 2700,
+            "unit": "L",
+            "unit_price": 303.21,
+            "amount": 818667
+          }
+        ]
+      },
       "findings": [
-        {"check": "rekensom_regels", "level": "pass", "msg": "Σ = 3.900.066,17 ✓"},
-        {"check": "verkoper_is_koper", "level": "warn", "msg": "Seller = Buyer (Tulip → Tulip): intra-company"},
-        {"check": "precedent_waarde", "level": "pass", "msg": "Dit document is de precedentbron voor de HS-suggestie op NL20256336"}
+        {
+          "check": "verplicht_veld_origin",
+          "level": "fail",
+          "msg": "Country of origin ontbreekt ('—') → zoek in dossier (CoO) of vraag op bij klant"
+        },
+        {
+          "check": "rekensom_regels",
+          "level": "pass",
+          "msg": "Σ regels = 8.453.520,81 = documenttotaal ✓"
+        }
       ],
-      "status": "auto_ok_met_notitie"
+      "hs_suggestion": null,
+      "status": "review_vereist",
+      "score": 3,
+      "duration_ms": 21788,
+      "cost_usd": 0.0681,
+      "started_at": "2026-06-11T14:57:37.022Z",
+      "finished_at": "2026-06-11T14:57:58.810Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 28,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 a5d19b52b855… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "a5d19b52b855"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "commercial_invoice · taal de · ref CH20246006",
+          "ms": 4494,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfjbUDR5E3UpkUjyhg9"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "11/20 velden · 7 regels · $0.04",
+          "ms": 4494,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfjbUDR5E3UpkUjyhg9"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "1 fouten · 0 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 1
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier CH20246006: 2 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "code op document 2201.10.11 · formaatcheck ok",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 28 velden gecontroleerd, 0 afwijkingen · $0.03",
+          "ms": 12796,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfkFsXUPvexE9AUmSdi"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 3 → review vereist",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending CH20246006",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending CH20246006 (document: Commercial_Invoice_CH20246006.pdf) hebben wij nog het volgende van u nodig:\n\n  • het land van oorsprong (country of origin)\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "CH20246006",
+      "fileUrl": "/docs/Commercial_Invoice_CH20246006.pdf",
+      "tier": 1
     },
     {
-      "id": "CCF25012024_0001", "tier": 3, "type_detected": "packing_list", "type_from_filename": "scanner-bestandsnaam", "ref": "ES20257477",
-      "extracted": {"shipper": "Sunrise Bodega S.L., Barcelona", "date_raw": "24-05-2024", "packages": 32, "gross_kg_header": 10288.7, "net_kg_header": 8682.4, "container": "CMAU5901253", "goods": "Wine of fresh grapes, <=2L, >=13% vol", "lines_visible": 3, "net_kg_sum_visible": 3412.2},
+      "id": "Packing_List_CH20246006",
+      "live": false,
+      "type_detected": "packing_list",
+      "language": "en",
+      "ref": "CH20246006",
+      "extracted": {
+        "seller": "MISTRAL ALPENWASSER AG",
+        "buyer": null,
+        "invoice_no": null,
+        "date_raw": "2024/10/03",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Mineral waters, sparkling",
+        "packages": 10,
+        "gross_kg_header": 1743.5,
+        "net_kg_header": 1425.7,
+        "container": "MSKU8117969",
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "No. 1788 Pudong Rd, Zürich (CH)",
+        "lines": [
+          {
+            "description": "Mineral waters, sparkling",
+            "qty": 1475,
+            "packages": 2,
+            "net_kg": 204.2,
+            "gross_kg": 224.62
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "qty": 2206,
+            "packages": 4,
+            "net_kg": 182.3,
+            "gross_kg": 200.53
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "qty": 2723,
+            "packages": 10,
+            "net_kg": 237.2,
+            "gross_kg": 260.92
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "qty": 1622,
+            "packages": 1,
+            "net_kg": 159.6,
+            "gross_kg": 175.56
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "qty": 4282,
+            "packages": 1,
+            "net_kg": 115.6,
+            "gross_kg": 127.16
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "qty": 3681,
+            "packages": 9,
+            "net_kg": 63.4,
+            "gross_kg": 69.74
+          },
+          {
+            "description": "Mineral waters, sparkling",
+            "qty": 2700,
+            "packages": 5,
+            "net_kg": 244.4,
+            "gross_kg": 268.84
+          }
+        ]
+      },
       "findings": [
-        {"check": "regelsom_vs_koptotaal", "level": "warn", "msg": "Zichtbare regels Σ 3.412,2 ≠ kop 8.682,4 — regels mogelijk afgekapt op scan → volledige doc opvragen"},
-        {"check": "accijnsgoederen", "level": "warn", "msg": "Wijn ≥13% = accijns → extra documentatie-eisen"},
-        {"check": "dossier_koppeling", "level": "pass", "msg": "CMR + Certificate_of_Origin voor ES20257477 in dump aanwezig → koppelen"}
+        {
+          "check": "regelsom_vs_koptotaal_netto",
+          "level": "fail",
+          "msg": "Σ netto regels 1.206,7 kg ≠ kop 1.425,7 kg (Δ 219)"
+        },
+        {
+          "check": "regelsom_vs_koptotaal_bruto",
+          "level": "fail",
+          "msg": "Σ bruto regels 1.327,37 kg ≠ kop 1.743,5 kg (Δ 416,13)"
+        },
+        {
+          "check": "gewichtsplausibiliteit",
+          "level": "fail",
+          "msg": "Regel 5: 4.282 stuks = 115,6 kg → 27 gram per stuk — implausibel"
+        },
+        {
+          "check": "gewichtsplausibiliteit",
+          "level": "fail",
+          "msg": "Regel 6: 3.681 stuks = 63,4 kg → 17,22 gram per stuk — implausibel"
+        },
+        {
+          "check": "container_checkdigit",
+          "level": "warn",
+          "msg": "Containernummer MSKU8117969 faalt de ISO 6346-checkdigit — typefout of vervalsing"
+        },
+        {
+          "check": "kruiscontrole_aantallen",
+          "level": "pass",
+          "msg": "Totale hoeveelheid (18689) identiek aan commercial_invoice Commercial_Invoice_CH20246006.pdf ✓"
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "warn",
+          "msg": "HS-advocaat van de duivel: De voorgestelde code 2201.10.11 (mineraalwater, bruisend, in verpakkingen van ≤ 2 liter) is op het eerste gezicht logisch voor 'sparkling mineral water'. Echter zijn er meerdere serieuze aandachtspunten: (1) Onderscheid 2201 vs. 2202: bevat het water toegevoegde suikers, smaakstoffen of andere ingrediënten? Dan valt het onder 2202 (limonades/gearomatiseerd water), niet onder 2201. (2) Binnen 2201.10: de onderverdeling 2201.10.11 is specifiek voor natuurlijk mineraalwater in verpakkingen van ≤ 2 liter. Is de verpakkingsgrootte bevestigd? Bij > 2 liter geldt 2201.10.19. (3) Het precedent (CH20246006) betreft dezelfde zendingreferentie — dit is geen onafhankelijke bevestiging maar circulaire redenering. (4) 'Sparkling' kan ook kunstmatig koolzuurhoudend water zijn (geen erkend mineraalwater), wat leidt tot 2201.90 i.p.v. 2201.10. · alternatief 2201.10.19 (sterk): Indien de verpakking groter is dan 2 liter (bijv. grote PET-flessen of bulk), is 2201.10.19 van toepassing in plaats van 2201.10.11. De grens ≤/> 2 liter is bepalend voor de GN-onderverdeling en wordt vaak over het hoofd gezien. → confidence verlaagd, senior kijkt mee"
+        },
+        {
+          "check": "hs_confidence_drempel",
+          "level": "warn",
+          "msg": "HS-confidence 70% ligt onder de drempel van 85% → senior beoordeelt de classificatie (drempel wordt in de pilot gekalibreerd tegen de golden set)"
+        }
       ],
-      "status": "review_vereist"
+      "hs_suggestion": {
+        "code": "2201.10.11",
+        "confidence": 0.7,
+        "reasoning": "Geen HS/GN-code op het document, maar wel de goederenomschrijving 'Mineral waters, sparkling'. De precedentbibliotheek bevat voor exact dezelfde zendingreferentie (CH20246006) HS 2201.10.11, wat aansluit bij minerale wateren (post 2201).",
+        "precedents": [
+          "CH20246006"
+        ],
+        "challenged": true,
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_senior",
+      "score": 19,
+      "duration_ms": 27608,
+      "cost_usd": 0.0866,
+      "started_at": "2026-06-11T14:57:37.017Z",
+      "finished_at": "2026-06-11T14:58:04.625Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 28,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 9b740db7c05a… · PDF bevestigd op magic bytes",
+          "ms": 1,
+          "hash": "9b740db7c05a"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "packing_list · taal en · ref CH20246006",
+          "ms": 5108,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfjbXgbeTJiW3dNb91o"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "9/20 velden · 7 regels · HS-suggestie aangemaakt · $0.04",
+          "ms": 5108,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfjbXgbeTJiW3dNb91o"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "4 fouten · 1 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 2
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier CH20246006: 3 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 2201.10.11 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 28 velden gecontroleerd, 0 afwijkingen · HS-voorstel aangevochten · $0.04",
+          "ms": 17390,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfkM64JY8uDSdTwkWmK"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 19 (HS aangevochten, HS-confidence < 85%) → escalatie senior",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending CH20246006",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending CH20246006 (document: Packing_List_CH20246006.pdf) hebben wij nog het volgende van u nodig:\n\n  • een bevestiging van de juiste gewichten (regeltotalen wijken af van het koptotaal)\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "CH20246006",
+      "fileUrl": "/docs/Packing_List_CH20246006.pdf",
+      "tier": 1
+    },
+    {
+      "id": "Certificate_of_Origin_CH20246006",
+      "live": false,
+      "type_detected": "certificate_of_origin",
+      "language": "en",
+      "ref": "CH20246006",
+      "extracted": {
+        "seller": "Mistral Alpenwasser AG",
+        "buyer": "Alpenwasser Mineral AG",
+        "invoice_no": "CH20246006",
+        "date_raw": "2024/10/03",
+        "incoterms": null,
+        "currency": null,
+        "origin": "Switzerland",
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Mineral waters, sparkling; Mineral waters, sparkling; Mineral waters, sparkling; Mineral waters, sparkling",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "Mistral Alpenwasser AG",
+        "lines": null
+      },
+      "findings": [
+        {
+          "check": "judge_extractie",
+          "level": "warn",
+          "msg": "Judge (claude-sonnet-4-6): veld 'goods' wijkt af van het brondocument — Het document toont vier goederen-items, maar de derde en vierde zijn gescheiden door een puntkomma zonder spatie na de derde item. In het document staat exact: 'Mineral waters, sparkling; Mineral waters, sparkling; Mineral waters, sparkling; Mineral waters, sparkling' verdeeld over twee regels. De geëxtraheerde waarde klopt inhoudelijk (4x hetzelfde item), maar het document vermeldt op de tweede regel slechts twee items zonder afsluitende puntkomma na het vierde item. Dit is een kleine representatieverschil maar de inhoud is correct."
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "pass",
+          "msg": "HS-advocaat van de duivel vindt geen sterk alternatief: De voorgestelde code 2201.10.11 is goed verdedigbaar en houdt stand. Mineraalwater met koolzuur (sparkling) valt correct onder GN 2201.10, waarbij de onderindeling .11 verwijst naar natuurlijk mineraalwater. Er is geen suiker, smaakstof of andere toevoeging vermeld, dus post 2202 (limonades/waters met toegevoegde suiker of smaakstoffen) is niet van toepassing. Het precedent CH20246006 op dezelfde zending en factuur versterkt de positie aanzienlijk. Enige aandachtspunten zijn of het werkelijk 'natuurlijk' mineraalwater betreft (vs. kunstmatig koolzuurhoudend water, code 2201.10.19) en of het niet gearomatiseerd is (anders 2202). Op basis van de omschrijving zijn deze risico's beperkt."
+        }
+      ],
+      "hs_suggestion": {
+        "code": "2201.10.11",
+        "confidence": 0.9,
+        "reasoning": "Geen HS/GN-code op het certificaat, maar wel een goederenomschrijving (sparkling mineral waters). Precedent CH20246006 betreft dezelfde zendingreferentie en commercial invoice, met HS 2201.10.11 voor mineraalwater met koolzuur.",
+        "precedents": [
+          "CH20246006"
+        ],
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_classificatie",
+      "score": 3,
+      "duration_ms": 25202,
+      "cost_usd": 0.0659,
+      "started_at": "2026-06-11T14:57:58.828Z",
+      "finished_at": "2026-06-11T14:58:24.030Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 22,
+        "fields_flagged": 1
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 4550ac69cc53… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "4550ac69cc53"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "certificate_of_origin · taal en · ref CH20246006",
+          "ms": 4591,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfmCRwBo8x1mVc2G7So"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "7/20 velden · 0 regels · HS-suggestie aangemaakt · $0.03",
+          "ms": 4591,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfmCRwBo8x1mVc2G7So"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "0 fouten · 0 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier CH20246006: 4 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 2201.10.11 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 22 velden gecontroleerd, 1 afwijkingen · HS-voorstel houdt stand · $0.03",
+          "ms": 16018,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011Cbwfmsr1X9nXXGPy1VtZs"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 3 (judge-afwijkingen) → escalatie classificatie",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "CH20246006",
+      "fileUrl": "/docs/Certificate_of_Origin_CH20246006.pdf",
+      "tier": 1
+    },
+    {
+      "id": "line_items_CH20246006.xlsx",
+      "live": false,
+      "type_detected": "order_lines_excel",
+      "language": "nl",
+      "ref": "CH20246006",
+      "extracted": {
+        "seller": "Alpenwasser Mineral AG",
+        "buyer": null,
+        "invoice_no": null,
+        "date_raw": null,
+        "incoterms": null,
+        "currency": "CHF",
+        "origin": null,
+        "total": null,
+        "hs_on_doc": "2201.10.11",
+        "goods": "Mineral waters, sparkling",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": null,
+        "lines": [
+          {
+            "qty": 1475,
+            "unit": "L",
+            "unit_price": 267.29,
+            "amount": 394252.75,
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11"
+          },
+          {
+            "qty": 2206,
+            "unit": "L",
+            "unit_price": 893.91,
+            "amount": 1971965.46,
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11"
+          },
+          {
+            "qty": 2723,
+            "unit": "L",
+            "unit_price": 359.07,
+            "amount": 977747.61,
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11"
+          },
+          {
+            "qty": 1622,
+            "unit": "L",
+            "unit_price": 702.36,
+            "amount": 1139227.92,
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11"
+          },
+          {
+            "qty": 4282,
+            "unit": "L",
+            "unit_price": 178.64,
+            "amount": 764936.48,
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11"
+          },
+          {
+            "qty": 3681,
+            "unit": "L",
+            "unit_price": 648.39,
+            "amount": 2386723.59,
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11"
+          },
+          {
+            "qty": 2700,
+            "unit": "L",
+            "unit_price": 303.21,
+            "amount": 818667,
+            "description": "Mineral waters, sparkling",
+            "hs_code": "2201.10.11"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "kruiscontrole_aantallen",
+          "level": "pass",
+          "msg": "Totale hoeveelheid (18689) identiek aan commercial_invoice Commercial_Invoice_CH20246006.pdf ✓"
+        },
+        {
+          "check": "kruiscontrole_aantallen",
+          "level": "pass",
+          "msg": "Totale hoeveelheid (18689) identiek aan packing_list Packing_List_CH20246006.pdf ✓"
+        },
+        {
+          "check": "verrijking",
+          "level": "warn",
+          "msg": "Origin ontbreekt hier maar staat op Certificate_of_Origin_CH20246006.pdf: Switzerland",
+          "resolution": "Overnemen uit certificate_of_origin → mens bevestigt",
+          "fix": {
+            "label": "Land van oorsprong",
+            "value": "Switzerland"
+          }
+        },
+        {
+          "check": "judge_extractie",
+          "level": "warn",
+          "msg": "Judge (claude-sonnet-4-6): veld 'lines[4].amount' wijkt af van het brondocument — Document toont '764936,48' (komma als decimaalscheidingsteken), geëxtraheerd als 764936.48. Waarde is inhoudelijk correct maar het document gebruikt een afwijkend formaattype ten opzichte van de andere regels. Rekencheck: 4282 × 178.64 = 764,936.48 ✓"
+        },
+        {
+          "check": "judge_extractie",
+          "level": "warn",
+          "msg": "Judge (claude-sonnet-4-6): veld 'lines[6].amount' wijkt af van het brondocument — Document toont '818667,00' (komma als decimaalscheidingsteken), geëxtraheerd als 818667 (zonder decimalen). Inhoudelijk gelijk, maar formattering wijkt af net als bij pos 5. Rekencheck: 2700 × 303.21 = 818667.00 ✓"
+        }
+      ],
+      "hs_suggestion": null,
+      "status": "auto_ok_met_notitie",
+      "score": 7,
+      "duration_ms": 30225,
+      "cost_usd": 0.0641,
+      "started_at": "2026-06-11T14:59:24.374Z",
+      "finished_at": "2026-06-11T14:59:54.599Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 42,
+        "fields_flagged": 2
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 4823df1c3ab5… · Excel: 1 werkblad(en) · ~11 regels",
+          "ms": 22,
+          "hash": "4823df1c3ab5"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "order_lines_excel · taal nl · ref CH20246006",
+          "ms": 3783,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfsWFfFtT3w7XCpZmWy"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "5/20 velden · 7 regels · $0.03",
+          "ms": 3783,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfsWFfFtT3w7XCpZmWy"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "0 fouten · 0 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier CH20246006: 5 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "code op document 2201.10.11 · formaatcheck ok",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 42 velden gecontroleerd, 2 afwijkingen · $0.03",
+          "ms": 22637,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011Cbwft4Rfu1dDi8dKeatoA"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 7 (judge-afwijkingen) → auto ok met notitie",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "CH20246006",
+      "fileUrl": null,
+      "tier": 1
+    },
+    {
+      "id": "Email_SE20243533",
+      "live": false,
+      "type_detected": "intake_email",
+      "language": "en",
+      "ref": "SE20243533",
+      "extracted": {
+        "seller": null,
+        "buyer": "bas@globallogistics.eu",
+        "invoice_no": null,
+        "date_raw": "07/03/2024",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Medicaments, retail packed, n. etc.",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": 1,
+        "signed_by": "Giulia Rossi",
+        "from": "John Carter <lindqvist@lindqvist.com>",
+        "lines": null
+      },
+      "findings": [
+        {
+          "check": "datum_ambigu",
+          "level": "warn",
+          "msg": "'07/03/2024': dag/maand of maand/dag? US- vs EU-notatie onbeslisbaar zonder context"
+        },
+        {
+          "check": "afzender_vs_ondertekening",
+          "level": "warn",
+          "msg": "Afzender (John Carter) ≠ ondertekenaar (Giulia Rossi)"
+        },
+        {
+          "check": "bijlagen_compleet",
+          "level": "pass",
+          "msg": "1 bijlagen geclaimd, 1 documenten in dossier ✓"
+        },
+        {
+          "check": "judge_extractie",
+          "level": "warn",
+          "msg": "Judge (claude-sonnet-4-6): veld 'signed_by' wijkt af van het brondocument — De e-mail is ondertekend door 'Giulia Rossi', maar de afzender (From:) is 'John Carter <lindqvist@lindqvist.com>'. De waarde 'Giulia Rossi' voor signed_by is correct als handtekening, maar de discrepantie tussen afzender en ondertekenaar is opvallend en verdient aandacht."
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "warn",
+          "msg": "HS-advocaat van de duivel: De omschrijving 'Medicaments, retail packed, n.e.c.' is bewust vaag — dit is een klassiek risico in de douanepraktijk. Hoofstuk 30 vereist dat het werkzame bestanddeel bekend is om de juiste 4- of 6-cijferige post te bepalen. 3004.90.00 (\"overige\") is verdedigbaar als vangnet, maar het precedent SE20243533 rechtvaardigt de keuze slechts als de samenstelling identiek is aan de huidige zending. Zonder kennis van het actieve ingrediënt blijft er reëel risico op een specifiekere post binnen 3004. Bovendien sluit de afkorting 'n.e.c.' (not elsewhere classified) een indeling elders niet uit als de inhoud nader bekend wordt. Aanbeveling: vraag de aangever om een productspecificatie (SDS of bijsluiter) om de werkzame stof te bevestigen vóór vrijgave. · alternatief 3004.50.00 (sterk): Indien het medicament vitaminen of provitaminen bevat als werkzaam bestanddeel, is post 3004.50 (vitaminepreparaten) de correcte specifiekere indeling boven de restpost 3004.90. → confidence verlaagd, senior kijkt mee"
+        },
+        {
+          "check": "hs_confidence_drempel",
+          "level": "warn",
+          "msg": "HS-confidence 55% ligt onder de drempel van 85% → senior beoordeelt de classificatie (drempel wordt in de pilot gekalibreerd tegen de golden set)"
+        }
+      ],
+      "hs_suggestion": {
+        "code": "3004.90.00",
+        "confidence": 0.5499999999999999,
+        "reasoning": "Geen HS-code op het document. Goederenomschrijving 'Medicaments, retail packed' komt overeen met precedent SE20243533 (zelfde zending), die HS 3004.90.00 toekent — passend voor medicamenten verpakt voor de kleinhandel.",
+        "precedents": [
+          "SE20243533"
+        ],
+        "challenged": true,
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_senior",
+      "score": 11,
+      "duration_ms": 21671,
+      "cost_usd": 0.0647,
+      "started_at": "2026-06-11T14:58:04.645Z",
+      "finished_at": "2026-06-11T14:58:26.316Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 22,
+        "fields_flagged": 1
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 faa4ba399357… · PDF bevestigd op magic bytes",
+          "ms": 1,
+          "hash": "faa4ba399357"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "intake_email · taal en · ref SE20243533",
+          "ms": 2980,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfmd9UikQYS8D53pinE"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "6/20 velden · 0 regels · HS-suggestie aangemaakt · $0.03",
+          "ms": 2980,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfmd9UikQYS8D53pinE"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "0 fouten · 2 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier SE20243533: 1 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 3004.90.00 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 22 velden gecontroleerd, 1 afwijkingen · HS-voorstel aangevochten · $0.04",
+          "ms": 15708,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011Cbwfn4dQfexzbY9EBC8CZ"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 11 (judge-afwijkingen, HS aangevochten, HS-confidence < 85%) → escalatie senior",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "SE20243533",
+      "fileUrl": "/docs/Email_SE20243533.pdf",
+      "tier": 1
+    },
+    {
+      "id": "Commercial_Invoice_SE20243533",
+      "live": false,
+      "type_detected": "commercial_invoice",
+      "language": "en",
+      "ref": "SE20243533",
+      "extracted": {
+        "seller": "Oriental Lindqvist AB",
+        "buyer": "Lindqvist Pharma AB",
+        "invoice_no": "SE20243533",
+        "date_raw": "07/03/2024",
+        "incoterms": "FCA Shanghai",
+        "currency": "EUR",
+        "origin": "Sweden",
+        "total": 7627721.42,
+        "hs_on_doc": "3004.90.00",
+        "goods": "Medicaments, retail packed, n.e.s.",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": "SE67 BANK 4286 9502 31",
+        "bic": "ABNANL2A",
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": null,
+        "lines": [
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "hs_code": "3004.90.00",
+            "qty": 4195,
+            "unit": "KG",
+            "unit_price": 200.8,
+            "amount": 842356
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "hs_code": "3004.90.00",
+            "qty": 1925,
+            "unit": "KG",
+            "unit_price": 410.69,
+            "amount": 790578.25
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "hs_code": "3004.90.00",
+            "qty": 4904,
+            "unit": "KG",
+            "unit_price": 259.8,
+            "amount": 1274059.2
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "hs_code": "3004.90.00",
+            "qty": 1013,
+            "unit": "KG",
+            "unit_price": 628.71,
+            "amount": 636883.23
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "hs_code": "3004.90.00",
+            "qty": 2692,
+            "unit": "KG",
+            "unit_price": 69.12,
+            "amount": 186071.04
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "hs_code": "3004.90.00",
+            "qty": 4558,
+            "unit": "KG",
+            "unit_price": 855.15,
+            "amount": 3897773.7
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "rekensom_regels",
+          "level": "pass",
+          "msg": "Σ regels = 7.627.721,42 = documenttotaal ✓"
+        },
+        {
+          "check": "datum_ambigu",
+          "level": "warn",
+          "msg": "'07/03/2024': dag/maand of maand/dag? US- vs EU-notatie onbeslisbaar zonder context"
+        },
+        {
+          "check": "iban_bic_land",
+          "level": "warn",
+          "msg": "IBAN-land SE ≠ BIC-land NL (ABNANL2A) — rekening en bank in verschillende landen"
+        },
+        {
+          "check": "risicoprofiel_goederen",
+          "level": "warn",
+          "msg": "Pharma (GS hoofdstuk 30) = verhoogd toezicht → altijd senior review"
+        }
+      ],
+      "hs_suggestion": null,
+      "status": "escalatie_senior",
+      "score": 6,
+      "duration_ms": 21121,
+      "cost_usd": 0.0671,
+      "started_at": "2026-06-11T14:58:07.129Z",
+      "finished_at": "2026-06-11T14:58:28.250Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 27,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 2033daa5e38a… · PDF bevestigd op magic bytes",
+          "ms": 1,
+          "hash": "2033daa5e38a"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "commercial_invoice · taal en · ref SE20243533",
+          "ms": 4461,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfmpAkeTnQTitAUSssW"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "13/20 velden · 6 regels · $0.04",
+          "ms": 4461,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfmpAkeTnQTitAUSssW"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "0 fouten · 3 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier SE20243533: 2 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "code op document 3004.90.00 · formaatcheck ok",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 27 velden gecontroleerd, 0 afwijkingen · $0.03",
+          "ms": 12197,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfnUEUU5CfY638sT9mc"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 6 (pharma) → escalatie senior",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "SE20243533",
+      "fileUrl": "/docs/Commercial_Invoice_SE20243533.pdf",
+      "tier": 1
+    },
+    {
+      "id": "Packing_List_SE20243533",
+      "live": false,
+      "type_detected": "packing_list",
+      "language": "en",
+      "ref": "SE20243533",
+      "extracted": {
+        "seller": "Oriental Lindqvist AB",
+        "buyer": null,
+        "invoice_no": null,
+        "date_raw": "07/03/2024",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Medicaments, retail packed, n.e.s.",
+        "packages": 37,
+        "gross_kg_header": 3086.1,
+        "net_kg_header": 2748.8,
+        "container": "TGHU4502494",
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "No. 1788 Pudong Rd, Göteborg (SE)",
+        "lines": [
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "qty": 4195,
+            "net_kg": 460.5,
+            "gross_kg": 506.55
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "qty": 1925,
+            "net_kg": 347.5,
+            "gross_kg": 382.25
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "qty": 4904,
+            "net_kg": 118.1,
+            "gross_kg": 129.91
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "qty": 1013,
+            "net_kg": 214.3,
+            "gross_kg": 235.73
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "qty": 2692,
+            "net_kg": 257.5,
+            "gross_kg": 283.25
+          },
+          {
+            "description": "Medicaments, retail packed, n.e.s.",
+            "qty": 4558,
+            "net_kg": 233,
+            "gross_kg": 256.3
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "regelsom_vs_koptotaal_netto",
+          "level": "fail",
+          "msg": "Σ netto regels 1.630,9 kg ≠ kop 2.748,8 kg (Δ 1.117,9)"
+        },
+        {
+          "check": "regelsom_vs_koptotaal_bruto",
+          "level": "fail",
+          "msg": "Σ bruto regels 1.793,99 kg ≠ kop 3.086,1 kg (Δ 1.292,11)"
+        },
+        {
+          "check": "datum_ambigu",
+          "level": "warn",
+          "msg": "'07/03/2024': dag/maand of maand/dag? US- vs EU-notatie onbeslisbaar zonder context"
+        },
+        {
+          "check": "gewichtsplausibiliteit",
+          "level": "fail",
+          "msg": "Regel 3: 4.904 stuks = 118,1 kg → 24,08 gram per stuk — implausibel"
+        },
+        {
+          "check": "container_checkdigit",
+          "level": "pass",
+          "msg": "Containernummer TGHU4502494 wiskundig geldig (ISO 6346) ✓"
+        },
+        {
+          "check": "kruiscontrole_aantallen",
+          "level": "pass",
+          "msg": "Totale hoeveelheid (19287) identiek aan commercial_invoice Commercial_Invoice_SE20243533.pdf ✓"
+        },
+        {
+          "check": "verrijking",
+          "level": "warn",
+          "msg": "Origin ontbreekt hier maar staat op Commercial_Invoice_SE20243533.pdf: Sweden",
+          "resolution": "Overnemen uit commercial_invoice → mens bevestigt",
+          "fix": {
+            "label": "Land van oorsprong",
+            "value": "Sweden"
+          }
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "warn",
+          "msg": "HS-advocaat van de duivel: De voorgestelde code 3004.90.00 is op zichzelf een logische keuze voor medicamenten in retailverpakking, maar de motivering rust bijna uitsluitend op één precedent (SE20243533) zonder inhoudelijke verificatie van de samenstelling of werkzame stof. Hoofdstuk 30 kent specifieke onderverdelingen (3004.10 t/m 3004.60) op basis van werkzame bestanddelen (antibiotica, hormonen, alkaloïden, vitaminen, etc.). Een 'n.e.s.'-omschrijving is een waarschuwingssignaal: het is onduidelijk of de juiste restpost werkelijk van toepassing is, of dat een specifiekere code gemist wordt. Daarnaast is het risico aanwezig dat de goederen buiten HS 30 vallen (bv. medische hulpmiddelen of diergeneesmiddelen). · alternatief 3004.10 / 3004.20 / 3004.31 / 3004.32 / 3004.41 / 3004.42 / 3004.43 / 3004.49 / 3004.50 / 3004.60 (sterk): Hoofdstuk 30 is gestructureerd op basis van de werkzame stof. Als de medicamenten antibiotica, hormonen, alkaloïden, vitaminen of andere specifiek genoemde stoffen bevatten, is een meer specifieke GN-onderverdeling verplicht boven de restpost 3004.90. De 'n.e.s.'-aanduiding maskeert mogelijk de werkelijke samenstelling — een senior declarant zou altijd de productspecificatie of MSDS opvragen. → confidence verlaagd, senior kijkt mee"
+        },
+        {
+          "check": "hs_confidence_drempel",
+          "level": "warn",
+          "msg": "HS-confidence 70% ligt onder de drempel van 85% → senior beoordeelt de classificatie (drempel wordt in de pilot gekalibreerd tegen de golden set)"
+        }
+      ],
+      "hs_suggestion": {
+        "code": "3004.90.00",
+        "confidence": 0.7,
+        "reasoning": "Geen HS-code op het packing list, maar wel een goederenomschrijving 'Medicaments, retail packed, n.e.s.'. Precedent CH... nee; precedent met dezelfde zendingreferentie SE20243533 (Commercial_Invoice_SE20243533) draagt HS 3004.90.00, wat exact overeenkomt met medicamenten in retailverpakking.",
+        "precedents": [
+          "SE20243533"
+        ],
+        "challenged": true,
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_senior",
+      "score": 17,
+      "duration_ms": 30458,
+      "cost_usd": 0.091,
+      "started_at": "2026-06-11T14:58:24.044Z",
+      "finished_at": "2026-06-11T14:58:54.502Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 40,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 d0d92db31b54… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "d0d92db31b54"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "packing_list · taal en · ref SE20243533",
+          "ms": 5019,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfo4bT51t5YAyb5ZN96"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "9/20 velden · 6 regels · HS-suggestie aangemaakt · $0.04",
+          "ms": 5019,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfo4bT51t5YAyb5ZN96"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "3 fouten · 1 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 1
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier SE20243533: 3 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 3004.90.00 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 40 velden gecontroleerd, 0 afwijkingen · HS-voorstel aangevochten · $0.05",
+          "ms": 20419,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfooC2CXK6Lh8zMf4eG"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 17 (HS aangevochten, HS-confidence < 85%) → escalatie senior",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending SE20243533",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending SE20243533 (document: Packing_List_SE20243533.pdf) hebben wij nog het volgende van u nodig:\n\n  • een bevestiging van de juiste gewichten (regeltotalen wijken af van het koptotaal)\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "SE20243533",
+      "fileUrl": "/docs/Packing_List_SE20243533.pdf",
+      "tier": 1
+    },
+    {
+      "id": "Bata_factuur",
+      "live": false,
+      "type_detected": "commercial_invoice",
+      "language": "en",
+      "ref": "GB20251722",
+      "extracted": {
+        "seller": "Bata Footwear Europe Ltd",
+        "buyer": "Bata Footwear Europe Ltd",
+        "invoice_no": "GB20251722",
+        "date_raw": "05/14/2024",
+        "incoterms": "CIF Felixstowe",
+        "currency": "GBP",
+        "origin": "United Kingdom",
+        "total": 4820573.95,
+        "hs_on_doc": "6403.99.96",
+        "goods": "Leather footwear, outer sole rubber",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "Dockweg 4, Manchester (GB)",
+        "lines": [
+          {
+            "description": "Leather footwear, outer sole rubber",
+            "hs_code": "6403.99.96",
+            "qty": 1516,
+            "unit": "PR",
+            "unit_price": 249.03,
+            "amount": 377529.48
+          },
+          {
+            "description": "Leather footwear, outer sole rubber",
+            "hs_code": "6403.99.96",
+            "qty": 1937,
+            "unit": "PR",
+            "unit_price": 870.17,
+            "amount": 1685519.29
+          },
+          {
+            "description": "Leather footwear, outer sole rubber",
+            "hs_code": "6403.99.96",
+            "qty": 2235,
+            "unit": "PR",
+            "unit_price": 459.22,
+            "amount": 1026356.7
+          },
+          {
+            "description": "Leather footwear, outer sole rubber",
+            "hs_code": "6403.99.96",
+            "qty": 1800,
+            "unit": "PR",
+            "unit_price": 369.15,
+            "amount": 664470
+          },
+          {
+            "description": "Leather footwear, outer sole rubber",
+            "hs_code": "6403.99.96",
+            "qty": 3372,
+            "unit": "PR",
+            "unit_price": 316.34,
+            "amount": 1066698.48
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "rekensom_regels",
+          "level": "pass",
+          "msg": "Σ regels = 4.820.573,95 = documenttotaal ✓"
+        },
+        {
+          "check": "ref_vs_datum",
+          "level": "warn",
+          "msg": "Zendingref zegt 2025, documentdatum zegt 2024 — jaarconflict"
+        },
+        {
+          "check": "verkoper_is_koper",
+          "level": "warn",
+          "msg": "Seller = Buyer (intra-company): andere waarderingsregels (transfer pricing) mogelijk van toepassing"
+        }
+      ],
+      "hs_suggestion": null,
+      "status": "auto_ok_met_notitie",
+      "score": 2,
+      "duration_ms": 22286,
+      "cost_usd": 0.0666,
+      "started_at": "2026-06-11T14:58:26.338Z",
+      "finished_at": "2026-06-11T14:58:48.624Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 26,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 18b265325243… · PDF bevestigd op magic bytes",
+          "ms": 1,
+          "hash": "18b265325243"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "commercial_invoice · taal en · ref GB20251722",
+          "ms": 3794,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfoDt3yiYLoBTv4pgqQ"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "12/20 velden · 5 regels · $0.04",
+          "ms": 3794,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfoDt3yiYLoBTv4pgqQ"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "0 fouten · 2 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier GB20251722: 1 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "code op document 6403.99.96 · formaatcheck ok",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 26 velden gecontroleerd, 0 afwijkingen · $0.03",
+          "ms": 14696,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfonMfg3wuxntcgXPgc"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 2 → auto ok met notitie",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "GB20251722",
+      "fileUrl": "/docs/Bata_factuur.pdf",
+      "tier": 2
+    },
+    {
+      "id": "Istanbul_factuur",
+      "live": false,
+      "type_detected": "packing_list",
+      "language": "en",
+      "ref": "TR20244065",
+      "extracted": {
+        "seller": "APEX ISTANBUL LTD STI",
+        "buyer": null,
+        "invoice_no": "TR20244065",
+        "date_raw": "2025/08/06",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Hand-knotted wool carpets",
+        "packages": 25,
+        "gross_kg_header": 12625,
+        "net_kg_header": 11469.8,
+        "container": "LCL groupage",
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "High Street 45, Istanbul (TR)",
+        "lines": [
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 3968,
+            "net_kg": 794.1,
+            "gross_kg": 873.51
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 2147,
+            "net_kg": 1330.6,
+            "gross_kg": 1463.66
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 566,
+            "net_kg": 15.6,
+            "gross_kg": 17.16
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 2101,
+            "net_kg": 660.7,
+            "gross_kg": 726.77
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 3964,
+            "net_kg": 828.4,
+            "gross_kg": 911.24
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 728,
+            "net_kg": 764.8,
+            "gross_kg": 841.28
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 4042,
+            "net_kg": 395.3,
+            "gross_kg": 434.83
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 458,
+            "net_kg": 658,
+            "gross_kg": 723.8
+          },
+          {
+            "description": "Hand-knotted wool carpets",
+            "qty": 798,
+            "net_kg": 1365.9,
+            "gross_kg": 1502.49
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "regelsom_vs_koptotaal_netto",
+          "level": "fail",
+          "msg": "Σ netto regels 6.813,4 kg ≠ kop 11.469,8 kg (Δ 4.656,4)"
+        },
+        {
+          "check": "regelsom_vs_koptotaal_bruto",
+          "level": "fail",
+          "msg": "Σ bruto regels 7.494,74 kg ≠ kop 12.625 kg (Δ 5.130,26)"
+        },
+        {
+          "check": "ref_vs_datum",
+          "level": "warn",
+          "msg": "Zendingref zegt 2024, documentdatum zegt 2025 — jaarconflict"
+        },
+        {
+          "check": "gewichtsplausibiliteit",
+          "level": "fail",
+          "msg": "Regel 3: 566 stuks = 15,6 kg → 27,56 gram per stuk — implausibel"
+        },
+        {
+          "check": "bestandsnaam_vs_inhoud",
+          "level": "fail",
+          "msg": "Bestandsnaam suggereert commercial_invoice, inhoud is packing_list — classificeer op inhoud, nooit op naam"
+        }
+      ],
+      "hs_suggestion": null,
+      "status": "review_vereist",
+      "score": 13,
+      "duration_ms": 24155,
+      "cost_usd": 0.0708,
+      "started_at": "2026-06-11T14:58:28.266Z",
+      "finished_at": "2026-06-11T14:58:52.421Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 30,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 dcc9c7e490bc… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "dcc9c7e490bc"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "packing_list · taal en · ref TR20244065",
+          "ms": 4153,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfoNG5tTS9KxKiW5cyi"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "10/20 velden · 9 regels · $0.04",
+          "ms": 4153,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfoNG5tTS9KxKiW5cyi"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "4 fouten · 1 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier TR20244065: 1 document(en) · kruischecks gedraaid",
+          "ms": 1
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "skip",
+          "summary": "geen HS-code aanwezig of voorgesteld",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 30 velden gecontroleerd, 0 afwijkingen · $0.03",
+          "ms": 15846,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfoysTyYBdxCrz24zLr"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 13 → review vereist",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending TR20244065",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending TR20244065 (document: Istanbul_factuur.pdf) hebben wij nog het volgende van u nodig:\n\n  • een bevestiging van de juiste gewichten (regeltotalen wijken af van het koptotaal)\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "TR20244065",
+      "fileUrl": "/docs/Istanbul_factuur.pdf",
+      "tier": 2
+    },
+    {
+      "id": "Rechnung_2025_02",
+      "live": false,
+      "type_detected": "cmr_vrachtbrief",
+      "language": "en",
+      "ref": "DE20243673",
+      "extracted": {
+        "seller": "Mistral Rheinmetall GmbH",
+        "buyer": "Rheinmetall Components GmbH",
+        "invoice_no": null,
+        "date_raw": "30-03-2024",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Parts of motor vehicles,; Parts of motor vehicles,; Parts of motor vehicles,",
+        "packages": 25,
+        "gross_kg_header": 12797,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "Felixstowe",
+        "lines": null
+      },
+      "findings": [
+        {
+          "check": "datumformaat",
+          "level": "warn",
+          "msg": "'30-03-2024' dwingt US-notatie af (maand 30 bestaat niet) — formaatdetectie geslaagd"
+        },
+        {
+          "check": "bestandsnaam_vs_inhoud",
+          "level": "fail",
+          "msg": "Bestandsnaam suggereert commercial_invoice, inhoud is cmr_vrachtbrief — classificeer op inhoud, nooit op naam"
+        },
+        {
+          "check": "judge_extractie",
+          "level": "warn",
+          "msg": "Judge (claude-sonnet-4-6): veld 'ref' wijkt af van het brondocument — Het document vermeldt 'DE20243673-CMR'; het achtervoegsel '-CMR' is weggelaten in de extractie. Afhankelijk van de definitie kan dit een afwijking zijn."
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "warn",
+          "msg": "HS-advocaat van de duivel: De omschrijving \"Parts of motor vehicles\" is extreem generiek en biedt onvoldoende basis om direct naar 8708.99.97 te springen. Post 8708 bevat talrijke specifieke subposten (remmen, versnellingsbakken, assen, carrosseriedelen, etc.), en de restpost 8708.99.97 is alleen correct als alle specifiekere subposten zijn uitgesloten. Zonder kennis van het exacte onderdeel is classificatie in een specifiekere subpost van 8708 – of zelfs buiten 8708 – zeer goed verdedigbaar. Bovendien is één precedent (DE20248224) onvoldoende om een generieke omschrijving te veranke­ren als de feitelijke goederenaard onbekend is. Een senior declarant zou altijd de fysieke aard, functie en materiaalsamenstelling van het onderdeel opvragen vóór classificatie. · alternatief 8708.30 (sterk): Indien het onderdeel betrekking heeft op remmen of servoremsystemen (inclusief remtrommels, remschijven, remklauwhouders), is 8708.30 de specifieke subpost die voorgaat op de restpost 8708.99.97. Specifieke subposten hebben altijd prioriteit (GS-interpretatieregel 6). → confidence verlaagd, senior kijkt mee"
+        },
+        {
+          "check": "hs_confidence_drempel",
+          "level": "warn",
+          "msg": "HS-confidence 55% ligt onder de drempel van 85% → senior beoordeelt de classificatie (drempel wordt in de pilot gekalibreerd tegen de golden set)"
+        }
+      ],
+      "hs_suggestion": {
+        "code": "8708.99.97",
+        "confidence": 0.5499999999999999,
+        "reasoning": "Het document bevat geen HS/GN-code maar wel de goederenomschrijving 'Parts of motor vehicles'. Precedent DE20248224 koppelt een vergelijkbare omschrijving (onderdelen van motorvoertuigen) aan post 8708.99.97.",
+        "precedents": [
+          "DE20248224"
+        ],
+        "challenged": true,
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_senior",
+      "score": 13,
+      "duration_ms": 35718,
+      "cost_usd": 0.0728,
+      "started_at": "2026-06-11T14:58:48.642Z",
+      "finished_at": "2026-06-11T14:59:24.360Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 22,
+        "fields_flagged": 1
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 1872d553e18a… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "1872d553e18a"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "cmr_vrachtbrief · taal en · ref DE20243673",
+          "ms": 3079,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfpsJc4RU1LJKTLjSwY"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "7/20 velden · 0 regels · HS-suggestie aangemaakt · $0.03",
+          "ms": 3079,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfpsJc4RU1LJKTLjSwY"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "1 fouten · 1 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier DE20243673: 1 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 8708.99.97 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 22 velden gecontroleerd, 1 afwijkingen · HS-voorstel aangevochten · $0.04",
+          "ms": 29560,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfqKbtydAa6dkNdaVYw"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 13 (judge-afwijkingen, HS aangevochten, HS-confidence < 85%) → escalatie senior",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "DE20243673",
+      "fileUrl": "/docs/Rechnung_2025_02.pdf",
+      "tier": 2
+    },
+    {
+      "id": "scan0248",
+      "live": false,
+      "type_detected": "commercial_invoice",
+      "language": "de",
+      "ref": "DE20248224",
+      "extracted": {
+        "seller": "Mistral Rheinmetall GmbH",
+        "buyer": "Rheinmetall Components GmbH",
+        "invoice_no": "DE20248224",
+        "date_raw": "13-05-2024",
+        "incoterms": "FCA Rotterdam",
+        "currency": "EUR",
+        "origin": null,
+        "total": 5506462.79,
+        "hs_on_doc": "8708.99.97",
+        "goods": "Parts of motor vehicles, n.e.s.",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": "DE28 BANK 3542 5677 12",
+        "bic": "ABNANL2A",
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "Plot 22 MIDC, Hamburg (DE)",
+        "lines": [
+          {
+            "description": "Parts of motor vehicles, n.e.s.",
+            "hs_code": "8708.99.97",
+            "qty": 2235,
+            "unit": "PCS",
+            "unit_price": 434.55,
+            "amount": 971219.25
+          },
+          {
+            "description": "Parts of motor vehicles, n.e.s.",
+            "hs_code": "8708.99.97",
+            "qty": 51,
+            "unit": "PCS",
+            "unit_price": 473.92,
+            "amount": 24169.92
+          },
+          {
+            "description": "Parts of motor vehicles, n.e.s.",
+            "hs_code": "8708.99.97",
+            "qty": 3185,
+            "unit": "PCS",
+            "unit_price": 405.51,
+            "amount": 1291549.35
+          },
+          {
+            "description": "Parts of motor vehicles, n.e.s.",
+            "hs_code": "8708.99.97",
+            "qty": 1422,
+            "unit": "PCS",
+            "unit_price": 856.59,
+            "amount": 1218070.98
+          },
+          {
+            "description": "Parts of motor vehicles, n.e.s.",
+            "hs_code": "8708.99.97",
+            "qty": 4349,
+            "unit": "PCS",
+            "unit_price": 460.21,
+            "amount": 2001453.29
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "verplicht_veld_origin",
+          "level": "fail",
+          "msg": "Country of origin ontbreekt ('—') → zoek in dossier (CoO) of vraag op bij klant"
+        },
+        {
+          "check": "rekensom_regels",
+          "level": "pass",
+          "msg": "Σ regels = 5.506.462,79 = documenttotaal ✓"
+        },
+        {
+          "check": "datumformaat",
+          "level": "warn",
+          "msg": "'13-05-2024' dwingt US-notatie af (maand 13 bestaat niet) — formaatdetectie geslaagd"
+        },
+        {
+          "check": "iban_bic_land",
+          "level": "warn",
+          "msg": "IBAN-land DE ≠ BIC-land NL (ABNANL2A) — rekening en bank in verschillende landen"
+        }
+      ],
+      "hs_suggestion": null,
+      "status": "review_vereist",
+      "score": 5,
+      "duration_ms": 27235,
+      "cost_usd": 0.0713,
+      "started_at": "2026-06-11T14:58:52.435Z",
+      "finished_at": "2026-06-11T14:59:19.670Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 36,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 dd408bc009de… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "dd408bc009de"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "commercial_invoice · taal de · ref DE20248224",
+          "ms": 4196,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfq9WgBXDiSQz83Y262"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "13/20 velden · 5 regels · $0.04",
+          "ms": 4196,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfq9WgBXDiSQz83Y262"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "1 fouten · 2 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier DE20248224: 1 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "code op document 8708.99.97 · formaatcheck ok",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 36 velden gecontroleerd, 0 afwijkingen · $0.03",
+          "ms": 18843,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011Cbwfqmin4aPZTY12dyDEt"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 5 → review vereist",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending DE20248224",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending DE20248224 (document: scan0248.pdf) hebben wij nog het volgende van u nodig:\n\n  • het land van oorsprong (country of origin)\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "DE20248224",
+      "fileUrl": "/docs/scan0248.pdf",
+      "tier": 3
+    },
+    {
+      "id": "IMG_1458",
+      "live": false,
+      "type_detected": "packing_list",
+      "language": "en",
+      "ref": "NL20256336",
+      "extracted": {
+        "seller": "Sunrise Tulip B.V.",
+        "buyer": null,
+        "invoice_no": null,
+        "date_raw": "01.07.24",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Monitors and projectors (LCD)",
+        "packages": 26,
+        "gross_kg_header": 1891.2,
+        "net_kg_header": 1778.3,
+        "container": "LCL groupage",
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "Rue du Commerce 88, Rotterdam (NL)",
+        "lines": [
+          {
+            "description": "Monitors and projectors (LCD)",
+            "qty": 960,
+            "net_kg": 382.1,
+            "gross_kg": 420.31
+          },
+          {
+            "description": "Monitors and projectors (LCD)",
+            "qty": 239,
+            "net_kg": 469.1,
+            "gross_kg": 516.01
+          },
+          {
+            "description": "Monitors and projectors (LCD)",
+            "qty": 1130,
+            "net_kg": 314.2,
+            "gross_kg": 345.62
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "regelsom_vs_koptotaal_netto",
+          "level": "fail",
+          "msg": "Σ netto regels 1.165,4 kg ≠ kop 1.778,3 kg (Δ 612,9)"
+        },
+        {
+          "check": "regelsom_vs_koptotaal_bruto",
+          "level": "fail",
+          "msg": "Σ bruto regels 1.281,94 kg ≠ kop 1.891,2 kg (Δ 609,26)"
+        },
+        {
+          "check": "datum_ambigu",
+          "level": "warn",
+          "msg": "'01.07.24': dag/maand of maand/dag? US- vs EU-notatie onbeslisbaar zonder context"
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "warn",
+          "msg": "HS-advocaat van de duivel: De omschrijving 'Monitors and projectors (LCD)' combineert twee productcategorieën die in het GS/GN-tarief fundamenteel anders worden ingedeeld. Monitors vallen doorgaans onder 8528.52 (niet voor televisie-ontvangst), maar LCD-projectoren horen thuis onder 8528.62. Het feit dat één precedent (NL20259032) deze gecombineerde omschrijving koppelt aan 8528.52.00 is onvoldoende om twijfel weg te nemen — het precedent kan zelf een legacy-indeling bevatten of betrekking hebben op een zending die uitsluitend monitors betrof. Een senior declarant zou eisen dat de feitelijke goederensplit (aantal/waarde monitors vs. projectoren) wordt verduidelijkt vóór aanvaarding van één enkele code voor de gehele zending. · alternatief 8528.62.00 (sterk): LCD-projectoren (beamers) worden in de GN specifiek ingedeeld onder 8528.62 (projectietoestellen, niet voor televisie-ontvangst). Indien de zending (ook) projectoren bevat, is 8528.62.00 de correcte code daarvoor. Het samenvoegen van monitors én projectoren onder 8528.52.00 is tariefrechtelijk onjuist. → confidence verlaagd, senior kijkt mee"
+        },
+        {
+          "check": "hs_confidence_drempel",
+          "level": "warn",
+          "msg": "HS-confidence 75% ligt onder de drempel van 85% → senior beoordeelt de classificatie (drempel wordt in de pilot gekalibreerd tegen de golden set)"
+        }
+      ],
+      "hs_suggestion": {
+        "code": "8528.52.00",
+        "confidence": 0.75,
+        "reasoning": "Geen HS/GN-code op het document, maar wel goederenomschrijving 'Monitors and projectors (LCD)'. In de precedentbibliotheek staat een exact identieke omschrijving gekoppeld aan HS 8528.52.00 (ref NL20259032).",
+        "precedents": [
+          "NL20259032"
+        ],
+        "challenged": true,
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_senior",
+      "score": 13,
+      "duration_ms": 23656,
+      "cost_usd": 0.0768,
+      "started_at": "2026-06-11T14:58:54.519Z",
+      "finished_at": "2026-06-11T14:59:18.175Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 33,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 24e04c54ede2… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "24e04c54ede2"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "packing_list · taal en · ref NL20256336",
+          "ms": 4088,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfqJnHm8o1oPYmb2VKZ"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "9/20 velden · 3 regels · HS-suggestie aangemaakt · $0.04",
+          "ms": 4088,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfqJnHm8o1oPYmb2VKZ"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "2 fouten · 1 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 1
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier NL20256336: 1 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 8528.52.00 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 33 velden gecontroleerd, 0 afwijkingen · HS-voorstel aangevochten · $0.04",
+          "ms": 15478,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfqugkRpp5jGnqydLbW"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 13 (HS aangevochten, HS-confidence < 85%) → escalatie senior",
+          "ms": 1
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending NL20256336",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending NL20256336 (document: IMG_1458.pdf) hebben wij nog het volgende van u nodig:\n\n  • een bevestiging van de juiste gewichten (regeltotalen wijken af van het koptotaal)\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "NL20256336",
+      "fileUrl": "/docs/IMG_1458.pdf",
+      "tier": 3
+    },
+    {
+      "id": "line_items_NL20256336.xlsx",
+      "live": false,
+      "type_detected": "order_lines_excel",
+      "language": "en",
+      "ref": "NL20256336",
+      "extracted": {
+        "seller": "Tulip Tech Distribution B.V.",
+        "buyer": null,
+        "invoice_no": null,
+        "date_raw": null,
+        "incoterms": null,
+        "currency": "EUR",
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Monitors and projectors (LCD)",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": null,
+        "lines": [
+          {
+            "description": "Monitors and projectors (LCD)",
+            "qty": 960,
+            "unit": "PCS",
+            "unit_price": 573.87,
+            "amount": 550915.2
+          },
+          {
+            "description": "Monitors and projectors (LCD)",
+            "qty": 239,
+            "unit": "PCS",
+            "unit_price": 157.71,
+            "amount": 37692.69
+          },
+          {
+            "description": "Monitors and projectors (LCD)",
+            "qty": 1130,
+            "unit": "PCS",
+            "unit_price": 273.82,
+            "amount": 309416.6
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "hs_ontbreekt",
+          "level": "fail",
+          "msg": "Geen HS/GN-code op het document → classificatie vereist (zie suggestie)"
+        },
+        {
+          "check": "kruiscontrole_aantallen",
+          "level": "pass",
+          "msg": "Totale hoeveelheid (2329) identiek aan packing_list IMG_1458.pdf ✓"
+        },
+        {
+          "check": "judge_extractie",
+          "level": "warn",
+          "msg": "Judge (claude-sonnet-4-6): veld 'lines[2].amount' wijkt af van het brondocument — Document toont 309416.6. Rekenkundige check: 1130 × 273.82 = 309416.60. De geëxtraheerde waarde 309416.6 is numeriek correct — maar het document zelf is al afgerond/onvolledig (slechts één decimaal). Geen extractiefout, maar aandacht voor afrondingspresentatie."
+        },
+        {
+          "check": "judge_hs_advocaat",
+          "level": "warn",
+          "msg": "HS-advocaat van de duivel: De omschrijving 'Monitors and projectors (LCD)' is een gemengde beschrijving die twee productcategorieën omvat: monitors én projectoren. 8528.52.00 dekt uitsluitend LCD-monitors (voor gebruik met ADP-machines), maar LCD-projectoren vallen typisch onder 8528.61.00 of 8528.69.00. Zolang de zending beide producttypen kan bevatten, is er een reëel risico op verkeerde indeling voor het projector-gedeelte. Het precedent NL20259032 is waardevol maar ontslaat de declarant niet van de plicht de werkelijke aard van de goederen te verifiëren — een precedent gebaseerd op dezelfde tekstuele omschrijving garandeert niet dat de fysieke goederen identiek zijn. · alternatief 8528.61.00 (sterk): LCD-projectoren (beamers) die niet speciaal zijn ontworpen voor gebruik met ADP-machines vallen onder 8528.61 (projectors). Als de zending ook of uitsluitend projectoren bevat, is dit de correcte post. De omschrijving 'projectors (LCD)' duidt expliciet op dit risico. → confidence verlaagd, senior kijkt mee"
+        },
+        {
+          "check": "hs_confidence_drempel",
+          "level": "warn",
+          "msg": "HS-confidence 75% ligt onder de drempel van 85% → senior beoordeelt de classificatie (drempel wordt in de pilot gekalibreerd tegen de golden set)"
+        }
+      ],
+      "hs_suggestion": {
+        "code": "8528.52.00",
+        "confidence": 0.75,
+        "reasoning": "Geen HS/GN-code op het document, maar wel een goederenomschrijving 'Monitors and projectors (LCD)'. Precedent NL20259032 (bron 'precedent Tulip') heeft exact dezelfde omschrijving 'Monitors and projectors (LCD)' gekoppeld aan HS 8528.52.00; dit precedent betreft bovendien dezelfde afzender (Tulip).",
+        "precedents": [
+          "NL20259032"
+        ],
+        "challenged": true,
+        "decision": "DECLARANT BESLIST — suggestie, geen besluit"
+      },
+      "status": "escalatie_senior",
+      "score": 12,
+      "duration_ms": 21775,
+      "cost_usd": 0.0618,
+      "started_at": "2026-06-11T14:59:40.728Z",
+      "finished_at": "2026-06-11T15:00:02.503Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 27,
+        "fields_flagged": 1
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 c351047c339e… · Excel: 2 werkblad(en) · ~7 regels",
+          "ms": 6,
+          "hash": "c351047c339e"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "order_lines_excel · taal en · ref NL20256336",
+          "ms": 3018,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfthx9bAy3fpwdwWNY6"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "4/20 velden · 3 regels · HS-suggestie aangemaakt · $0.03",
+          "ms": 3018,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfthx9bAy3fpwdwWNY6"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "1 fouten · 0 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier NL20256336: 2 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "suggestie 8528.52.00 · formaat ok · precedent bekend · TARIC-koppeling = productiestap",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 27 velden gecontroleerd, 1 afwijkingen · HS-voorstel aangevochten · $0.03",
+          "ms": 15732,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfuAEwqg5qjHF7SXdnX"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 12 (judge-afwijkingen, HS aangevochten, HS-confidence < 85%) → escalatie senior",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "NL20256336",
+      "fileUrl": null,
+      "tier": 3
+    },
+    {
+      "id": "WhatsApp_Image_20240612_at_10_53_10",
+      "live": false,
+      "type_detected": "commercial_invoice",
+      "language": "nl",
+      "ref": "NL20259032",
+      "extracted": {
+        "seller": "Tulip Tech Distribution B.V.",
+        "buyer": "Tulip Tech Distribution B.V.",
+        "invoice_no": "NL20259032",
+        "date_raw": "03-11-2024",
+        "incoterms": "CPT Genoa",
+        "currency": "EUR",
+        "origin": "Netherlands",
+        "total": 3900066.17,
+        "hs_on_doc": "8528.52.00",
+        "goods": "Monitors and projectors (LCD)",
+        "packages": null,
+        "gross_kg_header": null,
+        "net_kg_header": null,
+        "container": null,
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": null,
+        "lines": [
+          {
+            "description": "Monitors and projectors (LCD)",
+            "hs_code": "8528.52.00",
+            "qty": 2205,
+            "unit": "PCS",
+            "unit_price": 640.08,
+            "amount": 1411376.4
+          },
+          {
+            "description": "Monitors and projectors (LCD)",
+            "hs_code": "8528.52.00",
+            "qty": 2173,
+            "unit": "PCS",
+            "unit_price": 868.77,
+            "amount": 1887837.21
+          },
+          {
+            "description": "Monitors and projectors (LCD)",
+            "hs_code": "8528.52.00",
+            "qty": 824,
+            "unit": "PCS",
+            "unit_price": 729.19,
+            "amount": 600852.56
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "rekensom_regels",
+          "level": "pass",
+          "msg": "Σ regels = 3.900.066,17 = documenttotaal ✓"
+        },
+        {
+          "check": "datum_ambigu",
+          "level": "warn",
+          "msg": "'03-11-2024': dag/maand of maand/dag? US- vs EU-notatie onbeslisbaar zonder context"
+        },
+        {
+          "check": "ref_vs_datum",
+          "level": "warn",
+          "msg": "Zendingref zegt 2025, documentdatum zegt 2024 — jaarconflict"
+        },
+        {
+          "check": "verkoper_is_koper",
+          "level": "warn",
+          "msg": "Seller = Buyer (intra-company): andere waarderingsregels (transfer pricing) mogelijk van toepassing"
+        }
+      ],
+      "hs_suggestion": null,
+      "status": "auto_ok_met_notitie",
+      "score": 3,
+      "duration_ms": 24372,
+      "cost_usd": 0.0671,
+      "started_at": "2026-06-11T14:59:18.187Z",
+      "finished_at": "2026-06-11T14:59:42.559Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 39,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 d1748b54323b… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "d1748b54323b"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "commercial_invoice · taal nl · ref NL20259032",
+          "ms": 3786,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfs4BWSGdPrKxiLvrqH"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "11/20 velden · 3 regels · $0.03",
+          "ms": 3786,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011Cbwfs4BWSGdPrKxiLvrqH"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "0 fouten · 3 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier NL20259032: 1 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "done",
+          "summary": "code op document 8528.52.00 · formaatcheck ok",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 39 velden gecontroleerd, 0 afwijkingen · $0.03",
+          "ms": 16799,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011Cbwfsc6Ph6kKieQUx4Wps"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 3 → auto ok met notitie",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": null,
+      "mail": null,
+      "dossierRef": "NL20259032",
+      "fileUrl": "/docs/WhatsApp_Image_20240612_at_10_53_10.pdf",
+      "tier": 3
+    },
+    {
+      "id": "CCF25012024_0001",
+      "live": false,
+      "type_detected": "packing_list",
+      "language": "en",
+      "ref": "ES20257477",
+      "extracted": {
+        "seller": "Sunrise Bodega S.L.",
+        "buyer": null,
+        "invoice_no": "ES20257477",
+        "date_raw": "24-05-2024",
+        "incoterms": null,
+        "currency": null,
+        "origin": null,
+        "total": null,
+        "hs_on_doc": null,
+        "goods": "Wine of fresh grapes, <=2L, >=13% vol",
+        "packages": 32,
+        "gross_kg_header": 10288.7,
+        "net_kg_header": 8682.4,
+        "container": "CMAU5901253",
+        "iban": null,
+        "bic": null,
+        "attachments_claimed": null,
+        "signed_by": null,
+        "from": "High Street 45, Barcelona (ES)",
+        "lines": [
+          {
+            "description": "Wine of fresh grapes, <=2L, >=13% vol",
+            "qty": 2528,
+            "net_kg": 198,
+            "gross_kg": 217.8
+          },
+          {
+            "description": "Wine of fresh grapes, <=2L, >=13% vol",
+            "qty": 3012,
+            "net_kg": 2126.2,
+            "gross_kg": 2338.82
+          },
+          {
+            "description": "Wine of fresh grapes, <=2L, >=13% vol",
+            "qty": 1301,
+            "net_kg": 1088,
+            "gross_kg": 1196.8
+          }
+        ]
+      },
+      "findings": [
+        {
+          "check": "regelsom_vs_koptotaal_netto",
+          "level": "fail",
+          "msg": "Σ netto regels 3.412,2 kg ≠ kop 8.682,4 kg (Δ 5.270,2)"
+        },
+        {
+          "check": "regelsom_vs_koptotaal_bruto",
+          "level": "fail",
+          "msg": "Σ bruto regels 3.753,42 kg ≠ kop 10.288,7 kg (Δ 6.535,28)"
+        },
+        {
+          "check": "datumformaat",
+          "level": "warn",
+          "msg": "'24-05-2024' dwingt US-notatie af (maand 24 bestaat niet) — formaatdetectie geslaagd"
+        },
+        {
+          "check": "ref_vs_datum",
+          "level": "warn",
+          "msg": "Zendingref zegt 2025, documentdatum zegt 2024 — jaarconflict"
+        },
+        {
+          "check": "container_checkdigit",
+          "level": "warn",
+          "msg": "Containernummer CMAU5901253 faalt de ISO 6346-checkdigit — typefout of vervalsing"
+        }
+      ],
+      "hs_suggestion": null,
+      "status": "review_vereist",
+      "score": 9,
+      "duration_ms": 21031,
+      "cost_usd": 0.0616,
+      "started_at": "2026-06-11T14:59:19.685Z",
+      "finished_at": "2026-06-11T14:59:40.716Z",
+      "model": "claude-opus-4-8",
+      "judge": {
+        "model": "claude-sonnet-4-6",
+        "fields_checked": 33,
+        "fields_flagged": 0
+      },
+      "trace": [
+        {
+          "stage": 0,
+          "name": "Intake & normalisatie",
+          "status": "done",
+          "summary": "sha256 4c6d5b9b91e3… · PDF bevestigd op magic bytes",
+          "ms": 0,
+          "hash": "4c6d5b9b91e3"
+        },
+        {
+          "stage": 1,
+          "name": "Classificatie (inhoud)",
+          "status": "done",
+          "summary": "packing_list · taal en · ref ES20257477",
+          "ms": 3227,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfsAF91K6LcXRqQxS9a"
+        },
+        {
+          "stage": 2,
+          "name": "Extractie",
+          "status": "done",
+          "summary": "10/20 velden · 3 regels · $0.03",
+          "ms": 3227,
+          "model": "claude-opus-4-8",
+          "request_id": "req_011CbwfsAF91K6LcXRqQxS9a"
+        },
+        {
+          "stage": 3,
+          "name": "Deterministische validatie",
+          "status": "done",
+          "summary": "2 fouten · 3 checks · rekenregels + ISO 6346 + injectie-scan",
+          "ms": 0
+        },
+        {
+          "stage": 4,
+          "name": "Dossier & kruisvalidatie",
+          "status": "done",
+          "summary": "dossier ES20257477: 1 document(en) · kruischecks gedraaid",
+          "ms": 0
+        },
+        {
+          "stage": 5,
+          "name": "HS-sanity",
+          "status": "skip",
+          "summary": "geen HS-code aanwezig of voorgesteld",
+          "ms": 0
+        },
+        {
+          "stage": 6,
+          "name": "LLM-judges (tegenspraak)",
+          "status": "done",
+          "summary": "judge 1: 33 velden gecontroleerd, 0 afwijkingen · $0.03",
+          "ms": 14577,
+          "model": "claude-sonnet-4-6",
+          "request_id": "req_011CbwfsdYxFqoQakdRFLG2B"
+        },
+        {
+          "stage": 7,
+          "name": "Risicoscore & routing",
+          "status": "done",
+          "summary": "risicoscore 9 → review vereist",
+          "ms": 0
+        },
+        {
+          "stage": 8,
+          "name": "Besluit declarant",
+          "status": "done",
+          "summary": "wacht op declarant",
+          "ms": 0
+        }
+      ],
+      "conceptMail": {
+        "to": "de klant",
+        "subject": "Aanvulling nodig voor zending ES20257477",
+        "body": "Beste relatie,\n\nVoor de aangifte van zending ES20257477 (document: CCF25012024_0001.pdf) hebben wij nog het volgende van u nodig:\n\n  • een bevestiging van de juiste gewichten (regeltotalen wijken af van het koptotaal)\n\nZodra wij dit ontvangen, ronden wij de aangifte direct af.\n\nMet vriendelijke groet,\nGlobalLogistics — Declaratieteam\n\n[Concept — automatisch opgesteld, wordt pas verzonden na akkoord van de declarant]"
+      },
+      "mail": null,
+      "dossierRef": "ES20257477",
+      "fileUrl": "/docs/CCF25012024_0001.pdf",
+      "tier": 3
     }
   ],
   "metrics": {
     "per_tier": {
-      "tier1_schoon": {"docs": 8, "velden_automatisch_gevuld_pct": 98, "first_time_right_zonder_flags_pct": 25, "gem_flags_per_doc": 1.9, "doorlooptijd_inschatting": "45 min → ~5 min (validatie van flags)"},
-      "tier2_middel": {"docs": 3, "velden_automatisch_gevuld_pct": 96, "first_time_right_zonder_flags_pct": 0, "gem_flags_per_doc": 3.7, "doorlooptijd_inschatting": "45 min → ~10 min", "kernles": "Bestandsnamen liegen; classificatie op inhoud"},
-      "tier3_scan": {"docs": 5, "velden_automatisch_gevuld_pct": 93, "first_time_right_zonder_flags_pct": 20, "gem_flags_per_doc": 2.2, "doorlooptijd_inschatting": "45 min → ~8 min", "eerlijke_noot": "In deze (synthetische) dump is de scan-OCR verrassend goed; in productie zal tier 3 lager scoren — dáárom meten per tier vóór beloftes"}
+      "tier1_schoon": {
+        "docs": 8,
+        "velden_automatisch_gevuld_pct": 98,
+        "first_time_right_zonder_flags_pct": 25,
+        "gem_flags_per_doc": 1.9,
+        "doorlooptijd_inschatting": "45 min → ~5 min (validatie van flags)"
+      },
+      "tier2_middel": {
+        "docs": 3,
+        "velden_automatisch_gevuld_pct": 96,
+        "first_time_right_zonder_flags_pct": 0,
+        "gem_flags_per_doc": 3.7,
+        "doorlooptijd_inschatting": "45 min → ~10 min",
+        "kernles": "Bestandsnamen liegen; classificatie op inhoud"
+      },
+      "tier3_scan": {
+        "docs": 5,
+        "velden_automatisch_gevuld_pct": 93,
+        "first_time_right_zonder_flags_pct": 20,
+        "gem_flags_per_doc": 2.2,
+        "doorlooptijd_inschatting": "45 min → ~8 min",
+        "eerlijke_noot": "In deze (synthetische) dump is de scan-OCR verrassend goed; in productie zal tier 3 lager scoren — dáárom meten per tier vóór beloftes"
+      }
     },
     "kernconclusies": [
       "Extractie is niet het knelpunt (93–98% velden) — VALIDATIE is de waarde: elke fout die het systeem vangt is een boete die niet komt",
       "14/14 documenten in deze adversariële steekproef bevatten ≥1 bevinding — first-time-right zonder mens is een illusie; first-time-right MET gerichte review is het product",
       "HS-classificatie via precedent werkt (8528.52.00 op 0.91 confidence) — en blijft een suggestie: de declarant tekent"
     ]
-  }
+  },
+  "seeded_by": "scripts/seed-real.cjs — echte pipeline-output, geen handwerk"
 }
