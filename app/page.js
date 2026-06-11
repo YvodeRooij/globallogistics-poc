@@ -649,7 +649,11 @@ export default function Cockpit() {
                       <span className="hs-conf">handmatig gekozen door declarant · voorstel was {doc.hs_suggestion.code}</span>
                     ) : (
                       <>
-                        <span className="hs-conf">zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%{doc.hs_suggestion.challenged ? " · verlaagd na tegenspraak" : ""}</span>
+                        <span className="hs-conf">
+                          zekerheid {Math.round(doc.hs_suggestion.confidence * 100)}%
+                          {doc.hs_suggestion.challenged ? " · verlaagd na tegenspraak" : ""}
+                          {doc.hs_suggestion.confidence < 0.85 ? " · onder senior-drempel (85%)" : ""}
+                        </span>
                         <span className="hs-meter"><span style={{ width: `${Math.round(doc.hs_suggestion.confidence * 100)}%` }} /></span>
                       </>
                     )}
